@@ -125,7 +125,8 @@ df["Classification_reformated"] = df["Classification"].apply(
 )
 logging.info("Reformatted clinical significance column")
 logging.info(
-    f"Number of variants with unknown clinical significance: {len(df[df['Classification_reformated'] == 'Unknown'])}"
+    f"Number of variants with unknown clinical significance: \
+        {len(df[df['Classification_reformated'] == 'Unknown'])}"
 )
 
 
