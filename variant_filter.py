@@ -147,7 +147,7 @@ df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
 logging.info("Reformatted Proband_HPO_terms column")
 
 # add uuid as first column
-df.insert(0, "UUID", [str(uuid.uuid4()) for _ in range(len(df))])
+df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df))])
 
 # check df has no empty values otside fo the Stop and Varait_type columns
 if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
