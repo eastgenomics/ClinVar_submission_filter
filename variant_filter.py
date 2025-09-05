@@ -95,7 +95,7 @@ logging.info(
 
 ## filter out variants that were not reported posetive
 df = df[df["Summary_status"] != "REPORTED_INCONCLUSIVE"]
-logging.info(f"Number of variants after filtering REPORTED_POSITIVE: {len(df)}")
+logging.info(f"Number of variants after filtering out REPORTED_INCONCLUSIVE: {len(df)}")
 logging.info(f"variants filtered out: {initial_count - len(df)}")
 
 ## filter indels >= 50nt to separate file
