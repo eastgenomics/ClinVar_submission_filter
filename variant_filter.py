@@ -67,8 +67,6 @@ df = df.dropna(
     subset=[
         "Start",
         "Chromosome",
-        "Reference",
-        "Alternate",
         "mondo_pheno",
         "Classification",
         "Build",
