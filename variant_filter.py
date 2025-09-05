@@ -99,14 +99,17 @@ df_indels = df[
     (df["Variant_type"] == "deletion")
     | (df["Variant_type"] == "amplification")
 ]
+logging.info(f"Number of indels: {len(df_indels)}")
+
 df_indels_large = df_indels[(df_indels["Stop"] - df_indels["Start"]) >= 50]
 
 indel_output = (
-    os.path.basename(args.input_file) + "_indels_50nt_or_larger.xlsx"
+    os.path.basename(args.input_file).replace(".xlsx","") + "_indels_50nt_or_larger.xlsx"
 )
 df_indels_large.to_excel(indel_output, index=False)
 logging.info(f"Number of indels >= 50nt: {len(df_indels_large)}")
 logging.info(f"Indels >= 50nt written to file: {indel_output}")
+
 ## drop indels >= 50nt from main dataframe
 df = df[~df.index.isin(df_indels_large.index)]
 logging.info(f"Number of variants after removing indels >= 50nt: {len(df)}")
