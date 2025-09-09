@@ -159,6 +159,10 @@ df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
 
 logging.info("Reformatted Proband_HPO_terms column")
 
+
+# Remove "chr" from chromosome column if present
+df["Chromosome"] = df["Chromosome"].apply(lambda x: str(x).replace("chr", ""))
+
 # add uuid as first column
 df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df))])
 
@@ -171,8 +175,6 @@ if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
         "Dataframe contains empty values after filtering and reformatting"
     )
 logging.info("No empty values in dataframe after filtering and reformatting")
-
-# TODO: Remove "chr" from chromosome column if present
 
 
 # final number of variants
