@@ -5,6 +5,7 @@ import time
 import argparse
 import logging
 import os.path
+import numpy as np
 
 # set arguments
 ## create the parser
@@ -144,6 +145,18 @@ logging.info("Reformatted LastModifiedDate column")
 df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
     ",", ";", regex=False
 )
+
+# if HPO:0000006 is present in Proband_HPO_terms column change "Inheritance" column to "Autosomal dominant inheritance"
+mask = df["Proband_HPO_terms"].str.contains("HP:0000006")
+inheritance = np.asarray(df["Inheritance"])
+inheritance[mask] = "Autosomal dominant inheritance"
+df["Inheritance"] = inheritance
+
+# remove HPO:0000006 from Proband_HPO_terms column
+df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
+    "HP:0000006;|HP:0000006$", "", regex=True
+)   
+
 logging.info("Reformatted Proband_HPO_terms column")
 
 # add uuid as first column
@@ -158,6 +171,9 @@ if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
         "Dataframe contains empty values after filtering and reformatting"
     )
 logging.info("No empty values in dataframe after filtering and reformatting")
+
+# TODO: Remove "chr" from chromosome column if present
+
 
 # final number of variants
 final_count = len(df)
