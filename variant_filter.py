@@ -187,18 +187,24 @@ logging.info("Reformatted LastModifiedDate column")
 df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
     ",", ";", regex=False
 )
+logging.info("Replaced seperator ',' with ';' in Proband_HPO_terms column")
 
 # if HPO:0000006 is present in Proband_HPO_terms column change "Inheritance" column to "Autosomal dominant inheritance"
 
 mask = df["Proband_HPO_terms"].str.contains("HP:0000006", na=False)
+adi_count = mask.sum()
 df.loc[mask, "Inheritance"] = "Autosomal dominant inheritance"
+
+logging.info(
+    f"Inheritance changed to 'Autosomal dominant inheritance' in {adi_count} variants"
+)
 
 # remove HPO:0000006 from Proband_HPO_terms column
 df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
     "HP:0000006;|HP:0000006$", "", regex=True
 )   
 
-logging.info("Reformatted Proband_HPO_terms column")
+logging.info("'HP:0000006' removed in Proband_HPO_terms column")
 
 
 # Remove "chr" from chromosome column if present
