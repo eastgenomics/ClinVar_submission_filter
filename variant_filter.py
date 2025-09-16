@@ -108,10 +108,11 @@ logging.info(f"Number of indels: {len(df_indels)}")
 
 df_indels_large = df_indels[(df_indels["Stop"] - df_indels["Start"]) >= 50]
 
-indel_output = (
-    os.path.basename(args.input_file).replace(".xlsx","") + "_indels_50nt_or_larger.xlsx"
-)
+base_name = os.path.splitext(os.path.basename(args.input_file))[0]
+indel_output = os.path.join(args.output_dir, f"{base_name}_indels_50nt_or_larger.xlsx")
+
 df_indels_large.to_excel(indel_output, index=False)
+
 logging.info(f"Number of indels >= 50nt: {len(df_indels_large)}")
 logging.info(f"Indels >= 50nt written to file: {indel_output}")
 
