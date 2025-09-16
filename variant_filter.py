@@ -21,6 +21,10 @@ parser.add_argument(
     "output_dir", type=str, help="Path to the output directory"
 )
 
+parser.add_argument(
+    obsolete_codes := "--obsolete-codes", type=str, help="Path to the obsolete MONDO codes mapping file or string of paired values", default=None
+)
+
 ## parse the arguments
 args = parser.parse_args()
 
@@ -51,7 +55,29 @@ clinsigs = {
 }
 
 # obselete MONDO codes mapping
-mondo_codes = {"MONDO:0019592": "MONDO:0002145"}
+## check if obsolete codes file is provided or string of paired values
+if args.obsolete_codes:
+    if os.path.isfile(args.obsolete_codes):
+        try:
+            mondo_df = pd.read_csv(args.obsolete_codes, sep="\t", header=None)
+            mondo_codes = dict(zip(mondo_df[0], mondo_df[1]))
+            logging.info(f"Read obsolete MONDO codes from file: {args.obsolete_codes}")
+        except Exception as e:
+            logging.error(f"Error reading obsolete MONDO codes file: {e}")
+            raise
+    else:
+        try:
+            pairs = args.obsolete_codes.split(",")
+            mondo_codes = {}
+            for pair in pairs:
+                logging.info(f"Parsing pair: {pair}")
+                old, new = pair.split("-")
+                mondo_codes[old] = new
+            logging.info("Read obsolete MONDO codes from string of paired values")
+        except Exception as e:
+            logging.error(f"Error parsing obsolete MONDO codes string: {e}")
+            raise
+
 
 # read clinvar data file from argument
 df = pd.read_excel(args.input_file)
@@ -133,7 +159,7 @@ logging.info(
 
 
 ## replace known invaid MONDO codes
-df["mondo_pheno"] = df["mondo_pheno"].apply(lambda x: mondo_codes.get(x, x))
+df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
 logging.info("Replaced known obsolete MONDO codes")
 
 ## reofrmat date last modified column
