@@ -133,7 +133,7 @@ logging.info(
 )
 
 
-## filter out variants that were not reported posetive
+## filter out variants that were not reported  positive
 df = df[df["Summary_status"] != "REPORTED_INCONCLUSIVE"]
 logging.info(f"Number of variants after filtering out REPORTED_INCONCLUSIVE: {len(df)}")
 logging.info(f"variants filtered out: {initial_count - len(df)}")
@@ -175,13 +175,13 @@ logging.info(
 df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
 logging.info("Replaced known obsolete MONDO codes")
 
-## reofrmat date last modified column
+## reformat date last modified column
 df["LastModifiedDate"] = df["LastModifiedDate"].str.replace(
     "T00:00:00Z", "", regex=False
 )
 logging.info("Reformatted LastModifiedDate column")
 
-## replace HPO terms seperator , with ;
+## replace HPO terms separator , with ;
 df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
     ",", ";", regex=False
 )
@@ -205,7 +205,7 @@ df["Chromosome"] = df["Chromosome"].apply(lambda x: str(x).replace("chr", ""))
 # add uuid as first column
 df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df))])
 
-# check df has no empty values otside fo the Stop and Varait_type columns
+# check df has no empty values outside of the Stop and Variant_type columns
 if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
     logging.error(
         "Dataframe contains empty values after filtering and reformatting"
