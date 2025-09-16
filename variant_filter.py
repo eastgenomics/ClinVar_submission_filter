@@ -89,6 +89,13 @@ logging.info(f"Initial number of variants: {initial_count}")
 
 # filter out invalid variants
 
+## write variants with missing data to separate file
+df_missing = df[df[["Start",
+        "Chromosome",
+        "mondo_pheno",
+        "Classification",
+        "Build"]].isnull().any(axis=1)]
+
 ## filter out variants with missing data
 df = df.dropna(
     subset=[
@@ -221,9 +228,11 @@ logging.info(f"Number of GRCh37 variants: {len(df_b37)}")
 logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
 # write to output file
 output_base = args.output_dir + os.path.basename(args.input_file).replace(".xlsx", "")
+output_missing = output_base + "_missing_data.xlsx" 
 output_filtered = output_base + "_filtered.xlsx"
 output_b37 = output_base + "_b37_filtered.xlsx"
 output_b38 = output_base + "_b38_filtered.xlsx"
+df_missing.to_excel(output_missing, index=False)
 df.to_excel(output_filtered, index=False)
 df_b37.to_excel(output_b37, index=False)
 df_b38.to_excel(output_b38, index=False)
