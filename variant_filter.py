@@ -99,6 +99,10 @@ df = df.dropna(
         "Build",
     ]
 )
+logging.info(
+    f"Number of variants with missing data removed: {initial_count - len(df)}"
+)
+rolling_count = len(df)
 
 ## filter out duplicates
 df = df.drop_duplicates(
@@ -113,8 +117,10 @@ df = df.drop_duplicates(
     keep="first",
 )
 logging.info(
-    f"Number of duplicate variants removed: {initial_count - len(df)}"
+    f"Number of duplicate variants removed: {rolling_count - len(df)}"
 )
+rolling_count = len(df)
+
 logging.info(
     f"Number of variants after filtering missing data and duplicates: {len(df)}"
 )
