@@ -56,6 +56,7 @@ clinsigs = {
 
 # obselete MONDO codes mapping
 ## check if obsolete codes file is provided or string of paired values
+mondo_codes = None
 if args.obsolete_codes:
     if os.path.isfile(args.obsolete_codes):
         try:
@@ -172,8 +173,9 @@ logging.info(
 
 
 ## replace known invaid MONDO codes
-df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
-logging.info("Replaced known obsolete MONDO codes")
+if mondo_codes:
+    df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
+    logging.info("Replaced known obsolete MONDO codes")
 
 ## reformat date last modified column
 df["LastModifiedDate"] = df["LastModifiedDate"].str.replace(
