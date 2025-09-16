@@ -187,8 +187,7 @@ df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
 )
 
 # if HPO:0000006 is present in Proband_HPO_terms column change "Inheritance" column to "Autosomal dominant inheritance"
-#mask = df["Proband_HPO_terms"].str.contains("HP:0000006")
-#inheritance = np.asarray(df["Inheritance"])
+
 mask = df["Proband_HPO_terms"].str.contains("HP:0000006", na=False)
 df.loc[mask, "Inheritance"] = "Autosomal dominant inheritance"
 
