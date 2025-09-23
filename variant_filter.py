@@ -61,9 +61,9 @@ clinsigs = {
     "not_assessed": "not provided",
 }
 
+mondo_codes = None
 # obselete MONDO codes mapping
 ## check if obsolete codes file is provided or string of paired values
-mondo_codes = None
 if args.obsolete_codes:
     if os.path.isfile(args.obsolete_codes):
         try:
@@ -241,7 +241,8 @@ df_b38 = df[df["Build"] == "GRCh38"]
 logging.info(f"Number of GRCh37 variants: {len(df_b37)}")
 logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
 # write to output file
-output_base = args.output_dir + os.path.basename(args.input_file).replace(".xlsx", "")
+base_name = os.path.splitext(os.path.basename(args.input_file))[0]
+output_base = os.path.join(args.output_dir, base_name)
 output_missing = output_base + "_missing_data.xlsx" 
 output_filtered = output_base + "_filtered.xlsx"
 output_b37 = output_base + "_b37_filtered.xlsx"
