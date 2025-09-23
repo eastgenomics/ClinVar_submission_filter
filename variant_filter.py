@@ -218,7 +218,7 @@ logging.info("'HP:0000006' removed in Proband_HPO_terms column")
 df["Chromosome"] = df["Chromosome"].apply(lambda x: str(x).replace("chr", ""))
 
 # add uuid as first column
-df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df))])
+df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df)) if time.sleep(0.001) is None])
 
 # check df has no empty values outside of the Stop and Variant_type columns
 if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
