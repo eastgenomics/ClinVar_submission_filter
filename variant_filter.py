@@ -180,7 +180,7 @@ logging.info(
 
 
 ## replace known invaid MONDO codes
-if mondo_codes:
+if mondo_codes is not None:
     df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
     logging.info("Replaced known obsolete MONDO codes")
 
