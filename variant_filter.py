@@ -28,19 +28,26 @@ parser.add_argument(
 ## parse the arguments
 args = parser.parse_args()
 
-# setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename=args.output_dir + "/variant_filter.log",
-    filemode="w",
-)
-logging.basicConfig(
-    level=logging.ERROR,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename=args.output_dir + "/variant_filter.err",
-    filemode="w",
-)
+# ensure output dir exists
+os.makedirs(args.output_dir, exist_ok=True)
+
+# setup logging with separate files
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+info_handler = logging.FileHandler(os.path.join(args.output_dir, "variant_filter.log"), mode="w")
+info_handler.setLevel(logging.INFO)
+info_handler.setFormatter(formatter)
+
+error_handler = logging.FileHandler(os.path.join(args.output_dir, "variant_filter.err"), mode="w")
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(formatter)
+
+logger.handlers.clear()
+logger.addHandler(info_handler)
+logger.addHandler(error_handler)
+
 logging.info("Starting variant filtering script")
 
 
