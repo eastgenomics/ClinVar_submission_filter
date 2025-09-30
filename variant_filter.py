@@ -107,8 +107,13 @@ initial_count = len(df)
 logging.info(f"Initial number of variants: {initial_count}")
 
 
-def main(df=df, count=initial_count):
-    data = clinvar_data(df)
+def main(
+    df=df,
+    count=initial_count,
+    input_file=args.input_file,
+    output_dir=args.output_dir,
+):
+    data = clinvar_data(df, input_file, output_dir)
 
     # write variants with missing data to separate file
     missing_data = data.filter_missing()
@@ -118,9 +123,9 @@ def main(df=df, count=initial_count):
         f"Number of variants with missing data removed: {count - len(missing_data)}"
     )
     # filter out varaints with missing data in required columns
-    data = data.filter_na()
+    data.df = data.filter_na(data.df)
     # filter out duplicat variants
-    data = data.filter_duplicates()
+    data.df = data.filter_duplicates(data.df)
 
     logging.info(
         f"Number of duplicate variants removed: {rolling_count - len(data.df)}"
@@ -131,14 +136,66 @@ def main(df=df, count=initial_count):
         f"Number of variants after filtering missing data and duplicates: {len(data.df)}"
     )
 
-    data = data.remove_reported_with(status="REPORTED_INCONCLUSIVE")
-    logging.info(f"variants filtered out: {rolling_count - len(df)}")
-    rolling_count = len(df)
-
-    # filter out indels >= 50nt to separate file
-    data = data.retrieve_variant_types(
-        type=["amplification", "deletion", "insertion"]
+    data.df = data.remove_reported_with(
+        df=data.df, status="REPORTED_INCONCLUSIVE"
     )
+    logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
+    rolling_count = len(data.df)
+
+    cnv_data = data.retrieve_variant_types(
+        df=data.df,
+        type=["amplification", "deletion", "insertion"],
+        min_size=50,
+    )
+    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
+
+    # export filtered indels >= 50nt
+    data.export(
+        cnv_data,
+        output_dir=args.output_dir,
+        sufix="_indels_50nt.xlsx",
+        index=False,
+    )
+
+    data = data.drop_subset(data.df, cnv_data)
+    logging.info(
+        f"Number of variants after removing indels >= 50nt: {len(data.df)}"
+    )
+    rolling_count = len(data.df)
+
+    data.df = data.reformat_columns(
+        data.df,
+        replace=True,
+        mapping=clinsigs,
+        column="Classification",
+        new_column="Classification_reformated",
+        exhaustive=False,
+    )
+    logging.info("Reformatted clinical significance column")
+    logging.info(
+        f"Number of variants with unknown clinical significance: \
+        {len(df[df['Classification_reformated'] == 'Unknown'])}"
+    )
+
+    data.df = data.reformat_columns(
+        data.df,
+        replace=True,
+        mapping=clinsigs,
+        column="mondo_code",
+        new_column=mondo_codes,
+        exhaustive=False,
+    )
+    logging.info("Replaced known obsolete MONDO codes")
+
+    data = data.replace_in_column(
+        data.df, "LastModifiedDate", "T00:00:00Z", ""
+    )
+
+    logging.info("Reformatted LastModifiedDate column")
+
+    data = data.replace_in_column(data.df, "Proband_HPO_terms", ",", ";")
+
+    logging.info("Replaced seperator ',' with ';' in Proband_HPO_terms column")
 
 
 # TODO: finish refactoring below code into methods of clinvar_data class, them move to its own module
@@ -150,9 +207,10 @@ class clinvar_data:
         self.df = df
         self.base_name = os.path.splitext(os.path.basename(input_file))[0]
 
-    def export(self, output_dir, sufix, index=False):
+    @staticmethod
+    def export(self, df, output_dir, sufix, index=False):
         output = os.path.join(output_dir, f"{self.base_name}{sufix}")
-        output.to_excel(output_dir, index=index)
+        df.to_excel(output, index=index)
 
     def filter_missing(self, df):
 
@@ -220,48 +278,49 @@ class clinvar_data:
             (df_indels["Stop"] - df_indels["Start"]) >= 50
         ]
         logging.info(
-            f"Number of indels larger than {min_size}nt: {len(df_indels_large)}"
+            f"Number of {type} larger than {min_size}nt: {len(df_indels_large)}"
         )
         return df_indels_large
 
+    def drop_subset(self, df, subset):
+        df = df[~df.index.isin(subset.index)]
+        return df
+
+    def reformat_columns(
+        self,
+        df,
+        replace=True,
+        mapping=None,
+        column=None,
+        new_column=None,
+        exhaustive=False,
+    ):
+        if replace and mapping and column and not new_column:
+            if not exhaustive:
+                df[column] = df[column].apply(
+                    lambda x: mapping.get(x, "unknown")
+                )
+            else:
+                df[column] = df[column].apply(lambda x: mapping.get(x, x))
+        elif new_column and mapping and column and not replace:
+            if not exhaustive:
+                df[new_column] = df[column].apply(
+                    lambda x: mapping.get(x, "unknown")
+                )
+            else:
+                df[new_column] = df[column].apply(lambda x: mapping.get(x, x))
+        else:
+            logging.error("Invalid parameters for reformat_columns method")
+            raise ValueError("Invalid parameters for reformat_columns method")
+
+    def replace_in_column(self, df, column, to_replace, replacement):
+        df[column] = df[column].str.replace(
+            to_replace, replacement, regex=False
+        )
+        return df
+
 
 # TODO: refactor below code into functions and methods of clinvar_data class
-
-logging.info(f"Number of indels >= 50nt: {len(df_indels_large)}")
-logging.info(f"Indels >= 50nt written to file: {indel_output}")
-
-## drop indels >= 50nt from main dataframe
-df = df[~df.index.isin(df_indels_large.index)]
-logging.info(f"Number of variants after removing indels >= 50nt: {len(df)}")
-
-# reformat
-## reformat clinical significance column
-df["Classification_reformated"] = df["Classification"].apply(
-    lambda x: clinsigs.get(x, "Unknown")
-)
-logging.info("Reformatted clinical significance column")
-logging.info(
-    f"Number of variants with unknown clinical significance: \
-        {len(df[df['Classification_reformated'] == 'Unknown'])}"
-)
-
-
-## replace known invaid MONDO codes
-if mondo_codes is not None:
-    df["Mondo_code"] = df["Mondo_code"].apply(lambda x: mondo_codes.get(x, x))
-    logging.info("Replaced known obsolete MONDO codes")
-
-## reformat date last modified column
-df["LastModifiedDate"] = df["LastModifiedDate"].str.replace(
-    "T00:00:00Z", "", regex=False
-)
-logging.info("Reformatted LastModifiedDate column")
-
-## replace HPO terms separator , with ;
-df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
-    ",", ";", regex=False
-)
-logging.info("Replaced seperator ',' with ';' in Proband_HPO_terms column")
 
 # if HPO:0000006 is present in Proband_HPO_terms column change "Inheritance" column to "Autosomal dominant inheritance"
 
