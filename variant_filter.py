@@ -22,7 +22,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    obsolete_codes := "--obsolete-codes", type=str, help="Path to the obsolete MONDO codes mapping file or string of paired values", default=None
+    obsolete_codes := "--obsolete-codes",
+    type=str,
+    help="Path to the obsolete MONDO codes mapping file or string of paired values",
+    default=None,
 )
 
 ## parse the arguments
@@ -36,11 +39,15 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
-info_handler = logging.FileHandler(os.path.join(args.output_dir, "variant_filter.log"), mode="w")
+info_handler = logging.FileHandler(
+    os.path.join(args.output_dir, "variant_filter.log"), mode="w"
+)
 info_handler.setLevel(logging.INFO)
 info_handler.setFormatter(formatter)
 
-error_handler = logging.FileHandler(os.path.join(args.output_dir, "variant_filter.err"), mode="w")
+error_handler = logging.FileHandler(
+    os.path.join(args.output_dir, "variant_filter.err"), mode="w"
+)
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(formatter)
 
@@ -61,6 +68,7 @@ clinsigs = {
     "not_assessed": "not provided",
 }
 
+
 mondo_codes = None
 # obselete MONDO codes mapping
 ## check if obsolete codes file is provided or string of paired values
@@ -69,7 +77,9 @@ if args.obsolete_codes:
         try:
             mondo_df = pd.read_csv(args.obsolete_codes, sep="\t", header=None)
             mondo_codes = dict(zip(mondo_df[0], mondo_df[1]))
-            logging.info(f"Read obsolete MONDO codes from file: {args.obsolete_codes}")
+            logging.info(
+                f"Read obsolete MONDO codes from file: {args.obsolete_codes}"
+            )
         except Exception as e:
             logging.error(f"Error reading obsolete MONDO codes file: {e}")
             raise
@@ -81,7 +91,9 @@ if args.obsolete_codes:
                 logging.info(f"Parsing pair: {pair}")
                 old, new = pair.split("-")
                 mondo_codes[old] = new
-            logging.info("Read obsolete MONDO codes from string of paired values")
+            logging.info(
+                "Read obsolete MONDO codes from string of paired values"
+            )
         except Exception as e:
             logging.error(f"Error parsing obsolete MONDO codes string: {e}")
             raise
@@ -95,70 +107,125 @@ initial_count = len(df)
 logging.info(f"Initial number of variants: {initial_count}")
 
 
-# filter out invalid variants
+def main(df=df, count=initial_count):
+    data = clinvar_data(df)
 
-## write variants with missing data to separate file
-df_missing = df[df[["Start",
-        "Chromosome",
-        "mondo_pheno",
-        "Classification",
-        "Build"]].isnull().any(axis=1)]
+    # write variants with missing data to separate file
+    missing_data = data.filter_missing()
+    # filtered variants with missing data
+    rolling_count = len(data.df)
+    logging.info(
+        f"Number of variants with missing data removed: {count - len(missing_data)}"
+    )
+    # filter out varaints with missing data in required columns
+    data = data.filter_na()
+    # filter out duplicat variants
+    data = data.filter_duplicates()
 
-## filter out variants with missing data
-df = df.dropna(
-    subset=[
-        "Start",
-        "Chromosome",
-        "mondo_pheno",
-        "Classification",
-        "Build",
-    ]
-)
-logging.info(
-    f"Number of variants with missing data removed: {initial_count - len(df)}"
-)
-rolling_count = len(df)
+    logging.info(
+        f"Number of duplicate variants removed: {rolling_count - len(data.df)}"
+    )
+    rolling_count = len(df)
 
-## filter out duplicates
-df = df.drop_duplicates(
-    subset=[
-        "Start",
-        "Stop",
-        "Chromosome",
-        "Reference",
-        "Alternate",
-        "mondo_pheno",
-    ],
-    keep="first",
-)
-logging.info(
-    f"Number of duplicate variants removed: {rolling_count - len(df)}"
-)
-rolling_count = len(df)
+    logging.info(
+        f"Number of variants after filtering missing data and duplicates: {len(data.df)}"
+    )
 
-logging.info(
-    f"Number of variants after filtering missing data and duplicates: {len(df)}"
-)
+    data = data.remove_reported_with(status="REPORTED_INCONCLUSIVE")
+    logging.info(f"variants filtered out: {rolling_count - len(df)}")
+    rolling_count = len(df)
+
+    # filter out indels >= 50nt to separate file
+    data = data.retrieve_variant_types(
+        type=["amplification", "deletion", "insertion"]
+    )
 
 
-## filter out variants that were not reported  positive
-df = df[df["Summary_status"] != "REPORTED_INCONCLUSIVE"]
-logging.info(f"Number of variants after filtering out REPORTED_INCONCLUSIVE: {len(df)}")
-logging.info(f"variants filtered out: {initial_count - len(df)}")
+# TODO: finish refactoring below code into methods of clinvar_data class, them move to its own module
+class clinvar_data:
 
-## filter indels >= 50nt to separate file
-df_indels = df[
-    (df["Variant_type"] == "deletion")
-    | (df["Variant_type"] == "amplification")
-]
-logging.info(f"Number of indels: {len(df_indels)}")
+    def __init__(
+        self, df, input_file=args.input_file, output_dir=args.output_dir
+    ):
+        self.df = df
+        self.base_name = os.path.splitext(os.path.basename(input_file))[0]
 
-df_indels_large = df_indels[(df_indels["Stop"] - df_indels["Start"]) >= 50]
+    def export(self, output_dir, sufix, index=False):
+        output = os.path.join(output_dir, f"{self.base_name}{sufix}")
+        output.to_excel(output_dir, index=index)
 
-base_name = os.path.splitext(os.path.basename(args.input_file))[0]
-indel_output = os.path.join(args.output_dir, f"{base_name}_indels_50nt_or_larger.xlsx")
+    def filter_missing(self, df):
 
-df_indels_large.to_excel(indel_output, index=False)
+        # filter out invalid variants
+
+        ## write variants with missing data to separate file
+        filter_df = df[
+            df[
+                [
+                    "Start",
+                    "Chromosome",
+                    "mondo_pheno",
+                    "Classification",
+                    "Build",
+                ]
+            ]
+            .isnull()
+            .any(axis=1)
+        ]
+        return filter_df
+
+    def filter_na(df):
+        ## filter out variants with missing data
+        filter_df = df.dropna(
+            subset=[
+                "Start",
+                "Chromosome",
+                "mondo_pheno",
+                "Classification",
+                "Build",
+            ]
+        )
+        return filter_df
+
+    def filter_duplicates(self, df):
+        ## filter out duplicates
+        df = df.drop_duplicates(
+            subset=[
+                "Start",
+                "Stop",
+                "Chromosome",
+                "Reference",
+                "Alternate",
+                "mondo_pheno",
+            ],
+            keep="first",
+        )
+        return df
+
+    def remove_reported_with(self, df, status):
+        ## filter out variants that were not reported  positive
+        df = df[df["Summary_status"] != status]
+        logging.info(
+            f"Number of variants after filtering out {status}: {len(df)}"
+        )
+        return df
+
+    def retrieve_variant_types(
+        self, df, min_size: int = None, type: list = None
+    ):
+        ## filter indels >= 50nt to separate file
+        df_indels = df[(df["Variant_type"] in type)]
+
+        df_indels_large = df_indels[
+            (df_indels["Stop"] - df_indels["Start"]) >= 50
+        ]
+        logging.info(
+            f"Number of indels larger than {min_size}nt: {len(df_indels_large)}"
+        )
+        return df_indels_large
+
+
+# TODO: refactor below code into functions and methods of clinvar_data class
 
 logging.info(f"Number of indels >= 50nt: {len(df_indels_large)}")
 logging.info(f"Indels >= 50nt written to file: {indel_output}")
@@ -209,7 +276,7 @@ logging.info(
 # remove HPO:0000006 from Proband_HPO_terms column
 df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
     "HP:0000006;|HP:0000006$", "", regex=True
-)   
+)
 
 logging.info("'HP:0000006' removed in Proband_HPO_terms column")
 
@@ -218,7 +285,15 @@ logging.info("'HP:0000006' removed in Proband_HPO_terms column")
 df["Chromosome"] = df["Chromosome"].apply(lambda x: str(x).replace("chr", ""))
 
 # add uuid as first column
-df.insert(0, "UUID", [f"uid_{uuid.uuid1().time}" for _ in range(len(df)) if time.sleep(0.001) is None])
+df.insert(
+    0,
+    "UUID",
+    [
+        f"uid_{uuid.uuid1().time}"
+        for _ in range(len(df))
+        if time.sleep(0.001) is None
+    ],
+)
 
 # check df has no empty values outside of the Stop and Variant_type columns
 if df.drop(columns=["Stop", "Variant_type"]).isnull().values.any():
@@ -243,7 +318,7 @@ logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
 # write to output file
 base_name = os.path.splitext(os.path.basename(args.input_file))[0]
 output_base = os.path.join(args.output_dir, base_name)
-output_missing = output_base + "_missing_data.xlsx" 
+output_missing = output_base + "_missing_data.xlsx"
 output_filtered = output_base + "_filtered.xlsx"
 output_b37 = output_base + "_b37_filtered.xlsx"
 output_b38 = output_base + "_b38_filtered.xlsx"
@@ -256,3 +331,7 @@ logging.info(f"GRCh37 variants written to file: {output_b37}")
 logging.info(f"GRCh38 variants written to file: {output_b38}")
 logging.info(f"Indels >= 50nt written to file: {indel_output}")
 logging.info("Variant filtering script completed successfully")
+
+
+if __name__ == "__main__":
+    main()
