@@ -13,15 +13,14 @@ class clinvar_data:
         self.base_name = os.path.splitext(os.path.basename(input_file))[0]
 
     @staticmethod
-    def export(df, output_dir, sufix, index=False, base_name=None):
-        output = os.path.join(output_dir, f"{base_name}{sufix}")
+    def export(df, output_dir, suffix, index=False, base_name=None):
+        output = os.path.join(output_dir, f"{base_name}{suffix}")
         df.to_excel(output, index=index)
 
     def filter_missing(self, df):
 
-        # filter out invalid variants
+        #  extract invalid variants due to missing data
 
-        ## write variants with missing data to separate file
         filter_df = df[
             df[
                 [

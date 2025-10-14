@@ -123,7 +123,7 @@ def main(
     # filtered variants with missing data
     rolling_count = len(data.df)
     logging.info(
-        f"Number of variants with missing data removed: {rolling_count - len(missing_data)}"
+        f"Number of variants that have been removed with missing data: {rolling_count - len(missing_data)}"
     )
     # filter out varaints with missing data in required columns
     data.df = data.filter_na(data.df)
@@ -161,7 +161,7 @@ def main(
     data.export(
         cnv_data,
         output_dir=args.output_dir,
-        sufix="_cnv_50nt.xlsx",
+        suffix="_cnv_50nt.xlsx",
         index=False,
         base_name=data.base_name,
     )
@@ -205,7 +205,7 @@ def main(
 
     data.df = data.replace_in_column(data.df, "Proband_HPO_terms", ",", ";")
 
-    logging.info("Replaced seperator ',' with ';' in Proband_HPO_terms column")
+    logging.info("Replaced separator ',' with ';' in Proband_HPO_terms column")
 
     # Add class and function calls
 
