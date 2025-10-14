@@ -191,7 +191,7 @@ def main(
     data.df = data.reformat_columns(
         data.df,
         replace=True,
-        mapping=clinsigs,
+        mapping=mondo_codes,
         column="Mondo_code",
         exhaustive=False,
     )
