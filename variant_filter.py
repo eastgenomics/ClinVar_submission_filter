@@ -240,7 +240,11 @@ def main(
         base_name=data.base_name,
     )
     clinvar_data.export(
-        df, output_dir, "_filtered.xlsx", index=False, base_name=data.base_name
+        data.df,
+        output_dir,
+        "_filtered.xlsx",
+        index=False,
+        base_name=data.base_name,
     )
     clinvar_data.export(
         df_b37,
