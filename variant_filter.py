@@ -161,7 +161,7 @@ def main(
     data.export(
         cnv_data,
         output_dir=args.output_dir,
-        sufix="_indels_50nt.xlsx",
+        sufix="_cnv_50nt.xlsx",
         index=False,
         base_name=data.base_name,
     )
