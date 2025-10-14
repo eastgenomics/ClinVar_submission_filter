@@ -131,6 +131,7 @@ class clinvar_data:
         self.df.loc[mask, change_col] = new_value
         logging.info(f"{column} changed to '{new_value}' in {count} variants")
 
+    @staticmethod
     def remove_hpo_term(df, term):
         df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
             f"{term};|{term}$", "", regex=True
@@ -138,12 +139,14 @@ class clinvar_data:
         logging.info(f"'{term}' removed in Proband_HPO_terms column")
         return df
 
+    @staticmethod
     def reformat_chromosome(df):
         df["Chromosome"] = df["Chromosome"].apply(
             lambda x: str(x).replace("chr", "")
         )
         return df
 
+    @staticmethod
     def insert_uuid(df):
         df.insert(
             0,
