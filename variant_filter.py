@@ -185,7 +185,7 @@ def main(
     logging.info("Reformatted clinical significance column")
     logging.info(
         f"Number of variants with unknown clinical significance: \
-        {len(data.df[data.df['Classification_reformated'] == 'Unknown'])}"
+        {len(data.df[data.df['Classification_reformated'] == 'unknown'])}"
     )
 
     data.df = data.reformat_columns(
