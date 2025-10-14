@@ -147,7 +147,7 @@ def main(
 
     cnv_data = data.retrieve_variant_types(
         df=data.df,
-        type=["amplification", "deletion", "insertion"],
+        types=["amplification", "deletion", "insertion"],
         min_size=50,
     )
     logging.info(f"CNVs >= 50nt written to file in {output_dir}")
