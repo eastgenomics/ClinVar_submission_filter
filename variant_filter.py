@@ -166,6 +166,8 @@ def main(
     )
     rolling_count = len(data.df)
 
+    data.df = data.insert_uuid(data.df)
+
     data.df = data.reformat_columns(
         data.df,
         replace=False,
@@ -216,10 +218,11 @@ def main(
     # final number of variants
     final_count = len(df)
     logging.info(f"Final number of variants: {final_count}")
+    print(data.df)
 
     # split filtered table into b37 and b38 using the "Build" column
-    df_b37 = df[df["Build"] == "GRCh37"]
-    df_b38 = df[df["Build"] == "GRCh38"]
+    df_b37 = data.df[df["Build"] == "GRCh37"]
+    df_b38 = data.df[df["Build"] == "GRCh38"]
     logging.info(f"Number of GRCh37 variants: {len(df_b37)}")
     logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
     # write to output file
