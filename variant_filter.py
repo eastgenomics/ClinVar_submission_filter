@@ -163,6 +163,7 @@ def main(
         output_dir=args.output_dir,
         sufix="_indels_50nt.xlsx",
         index=False,
+        base_name=data.base_name,
     )
 
     data.df = data.drop_subset(data.df, cnv_data)
