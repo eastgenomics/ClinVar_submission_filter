@@ -123,20 +123,25 @@ def main(
     # filtered variants with missing data
     rolling_count = len(data.df)
     logging.info(
-        f"Number of variants with missing data removed: {count - len(missing_data)}"
+        f"Number of variants with missing data removed: {rolling_count - len(missing_data)}"
     )
     # filter out varaints with missing data in required columns
     data.df = data.filter_na(data.df)
+    logging.info(
+        f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
+    )
+    rolling_count = len(data.df)
+
     # filter out duplicat variants
     data.df = data.filter_duplicates(data.df)
-
     logging.info(
-        f"Number of duplicate variants removed: {rolling_count - len(data.df)}"
+        f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
     )
+
     rolling_count = len(df)
 
     logging.info(
-        f"Number of variants after filtering missing data and duplicates: {len(data.df)}"
+        f"Number of variants after filtering out duplicates: {len(data.df)}"
     )
 
     data.df = data.remove_reported_with(
