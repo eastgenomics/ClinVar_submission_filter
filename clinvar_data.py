@@ -73,15 +73,15 @@ class clinvar_data:
         )
         return df
 
-    def retrieve_variant_types(self, df, min_size: int, type: list):
+    def retrieve_variant_types(self, df, min_size: int, types: list):
         ## filter indels >= 50nt to separate file
-        df_indels = df[df["Variant_type"].isin(type)]
+        df_indels = df[df["Variant_type"].isin(types)]
 
         df_indels_large = df_indels[
             (df_indels["Stop"] - df_indels["Start"]) >= min_size
         ]
         logging.info(
-            f"Number of {type} larger than {min_size}nt: {len(df_indels_large)}"
+            f"Number of {types} larger than {min_size}nt: {len(df_indels_large)}"
         )
         return df_indels_large
 
