@@ -78,8 +78,13 @@ class clinvar_data:
         )
         return df
 
-    def retrieve_variant_types(self, df, min_size: int, types: list):
-        ## filter indels >= 50nt to separate file
+    def retrieve_large_variant_types(self, df, min_size: int, types: list):
+        """filter varaints of particular types which are >= a minimum size.
+        Args:
+            df (pd.DataFrame): input dataframe
+            min_size (int): minimum size of the indel
+            types (list): list of variant types to filter
+        """
         df_indels = df[df["Variant_type"].isin(types)]
 
         df_indels_large = df_indels[

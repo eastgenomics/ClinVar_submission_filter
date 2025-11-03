@@ -149,7 +149,7 @@ def main(
     logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
     rolling_count = len(data.df)
 
-    cnv_data = data.retrieve_variant_types(
+    cnv_data = data.retrieve_large_variant_types(
         df=data.df,
         types=["amplification", "deletion", "insertion"],
         min_size=50,
