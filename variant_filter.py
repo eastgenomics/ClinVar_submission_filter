@@ -192,7 +192,7 @@ def main(
         replace=True,
         mapping=mondo_codes,
         column="Mondo_code",
-        exhaustive=False,
+        exhaustive=True,
     )
     logging.info("Replaced known obsolete MONDO codes")
 
