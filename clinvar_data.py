@@ -134,14 +134,24 @@ class clinvar_data:
         Returns:
             pd.DataFrame: Dataframe with reformatted column.
         """
-        if replace and mapping and column and not new_column:
+        if (
+            replace
+            and mapping is not None
+            and column is not None
+            and new_column is None
+        ):
             if not exhaustive:
                 df[column] = df[column].apply(
                     lambda x: mapping.get(x, "unknown")
                 )
             else:
                 df[column] = df[column].apply(lambda x: mapping.get(x, x))
-        elif new_column and mapping and column and not replace:
+        elif (
+            new_column is not None
+            and mapping is not None
+            and column is not None
+            and not replace
+        ):
             if not exhaustive:
                 df[new_column] = df[column].apply(
                     lambda x: mapping.get(x, "unknown")
