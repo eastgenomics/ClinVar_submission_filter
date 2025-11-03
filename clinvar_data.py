@@ -164,6 +164,17 @@ class clinvar_data:
         return df
 
     def replace_in_column(self, df, column, to_replace, replacement):
+        """_summary_
+
+        Args:
+            df              pd.DataFrame: main dataframe
+            column          str: column to perform replacement in
+            to_replace      str: string to replace
+            replacement     str: string to replace with
+
+        Returns:
+            pd.DataFrame : dataframe with replaced values in specified column
+        """
         df[column] = df[column].str.replace(
             to_replace, replacement, regex=False
         )
