@@ -96,6 +96,15 @@ class clinvar_data:
         return df_indels_large
 
     def drop_subset(self, df, subset):
+        """Remove a subset of variants from the main dataframe.
+
+        Args:
+            df (pd.DataFrame): main dataframe
+            subset (pd.DataFrame): subset to remove from main dataframe
+
+        Returns:
+            pd.DataFrame: dataframe with subset removed
+        """
         df = df[~df.index.isin(subset.index)]
         return df
 
