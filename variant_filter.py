@@ -131,7 +131,7 @@ def main(
     )
     rolling_count = len(data.df)
 
-    # filter out duplicat variants
+    # filter out duplicate variants
     data.df = data.filter_duplicates(data.df)
     logging.info(
         f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
