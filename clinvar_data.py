@@ -230,6 +230,14 @@ class clinvar_data:
 
     @staticmethod
     def insert_uuid(df):
+        """insert a UUID column at the start of the dataframe.
+
+        Args:
+            df pd.DataFrame: input dataframe
+
+        Returns:
+            pd.DataFrame: dataframe with UUID column inserted
+        """
         df.insert(
             0,
             "UUID",
