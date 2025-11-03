@@ -215,6 +215,14 @@ class clinvar_data:
 
     @staticmethod
     def reformat_chromosome(df):
+        """reformat chromosome column by removing 'chr' prefix.
+
+        Args:
+            df df.DataFrame: input dataframe
+
+        Returns:
+            pd.DataFrame: dataframe with reformatted chromosome column
+        """
         df["Chromosome"] = df["Chromosome"].apply(
             lambda x: str(x).replace("chr", "")
         )
