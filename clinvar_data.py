@@ -198,6 +198,15 @@ class clinvar_data:
 
     @staticmethod
     def remove_hpo_term(df, term):
+        """_remove a specific HPO term from the Proband_HPO_terms column.
+
+        Args:
+            df pd.DataFrame: input dataframe
+            term str: HPO term to remove
+
+        Returns:
+            pd.DataFrame: dataframe with HPO term removed
+        """
         df["Proband_HPO_terms"] = df["Proband_HPO_terms"].str.replace(
             f"{term};|{term}$", "", regex=True
         )
