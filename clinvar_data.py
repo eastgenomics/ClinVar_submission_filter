@@ -183,6 +183,14 @@ class clinvar_data:
     def conditional_reformat_contains(
         self, column, contains, change_col, new_value
     ):
+        """change values in a column based on whether another column contains a specific string.
+
+        Args:
+            column      str: column to check for string on which conditional change is based
+            contains    str: string to check for in column
+            change_col  str: column to change value in in case condition is met
+            new_value   str: new value to set in change_col if condition is met
+        """
         mask = self.df[column].str.contains(contains, na=False)
         count = mask.sum()
         self.df.loc[mask, change_col] = new_value
