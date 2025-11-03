@@ -66,7 +66,12 @@ class clinvar_data:
         return df
 
     def remove_reported_with(self, df, status):
-        ## filter out variants that were not reported  positive
+        """
+        filter out variants that were not reported with a specific status in the summary status column.
+        Args:
+            df (pd.DataFrame): input dataframe
+            status (str): status to filter out
+        """
         df = df[df["Summary_status"] != status]
         logging.info(
             f"Number of variants after filtering out {status}: {len(df)}"
