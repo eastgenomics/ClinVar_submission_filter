@@ -122,7 +122,7 @@ def main(
     missing_data = data.filter_missing(data.df)
     rolling_count = len(data.df)
     logging.info(
-        f"Number of variants that have been removed with missing data: {rolling_count - len(missing_data)}"
+        f"Number of variants that have been removed due to missing data: {rolling_count - len(missing_data)}"
     )
     # filter out varaints with missing data in required columns
     data.df = data.filter_na(data.df)
