@@ -11,9 +11,10 @@ class clinvar_data:
     def __init__(self, df, input_file, output_dir):
         self.df = df
         self.base_name = os.path.splitext(os.path.basename(input_file))[0]
+        self.output_dir = output_dir
 
     @staticmethod
-    def export(df, output_dir, suffix, index=False, base_name=None):
+    def export(df, output_dir, suffix, base_name, index=False):
         output = os.path.join(output_dir, f"{base_name}{suffix}")
         df.to_excel(output, index=index)
 

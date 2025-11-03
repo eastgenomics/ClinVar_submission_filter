@@ -234,29 +234,29 @@ def main(
     # write to output file
     clinvar_data.export(
         missing_data,
-        output_dir,
-        "_missing_data.xlsx",
-        index=False,
+        output_dir=args.output_dir,
+        suffix="_missing_data.xlsx",
         base_name=data.base_name,
+        index=False,
     )
     clinvar_data.export(
         data.df,
-        output_dir,
-        "_filtered.xlsx",
+        output_dir=output_dir,
+        suffix="_filtered.xlsx",
         index=False,
         base_name=data.base_name,
     )
     clinvar_data.export(
         df_b37,
-        output_dir,
-        "_b37_filtered.xlsx",
+        output_dir=output_dir,
+        suffix="_b37_filtered.xlsx",
         index=False,
         base_name=data.base_name,
     )
     clinvar_data.export(
         df_b38,
-        output_dir,
-        "_b38_filtered.xlsx",
+        output_dir=output_dir,
+        suffix="_b38_filtered.xlsx",
         index=False,
         base_name=data.base_name,
     )
