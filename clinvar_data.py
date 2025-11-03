@@ -117,6 +117,23 @@ class clinvar_data:
         new_column=None,
         exhaustive=False,
     ):
+        """_summary_
+
+        Args:
+            df df.DataFrame: main dataframe
+            replace (bool, optional): If True, replace values in the existing column.
+                If False, create a new column with reformatted values. Defaults to True.
+            mapping (dict, optional): Dictionary mapping old values to new values. Defaults to None.
+            column (str, optional): Name of the column to reformat. Defaults to None.
+            new_column (str, optional): Name of the new column to create if replace is False. Defaults to None.
+            exhaustive (bool, optional): If True, all values must be in the mapping dictionary.
+
+        Raises:
+            ValueError: If invalid parameters are provided such as both 'replace' and 'new_column' being set.
+
+        Returns:
+            pd.DataFrame: Dataframe with reformatted column.
+        """
         if replace and mapping and column and not new_column:
             if not exhaustive:
                 df[column] = df[column].apply(
