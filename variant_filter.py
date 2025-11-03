@@ -118,9 +118,8 @@ def main(
 ):
     data = clinvar_data(df, input_file, output_dir)
 
-    # write variants with missing data to separate file
+    # store variants with missing data in a separate dataframe
     missing_data = data.filter_missing(data.df)
-    # filtered variants with missing data
     rolling_count = len(data.df)
     logging.info(
         f"Number of variants that have been removed with missing data: {rolling_count - len(missing_data)}"
