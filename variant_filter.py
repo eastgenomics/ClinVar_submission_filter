@@ -25,7 +25,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    obsolete_codes := "--obsolete-codes",
+    "--obsolete-codes",
     type=str,
     help="Path to the obsolete MONDO codes mapping file or string of paired values",
     default=None,
