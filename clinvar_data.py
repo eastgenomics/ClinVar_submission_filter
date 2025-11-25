@@ -80,20 +80,21 @@ class clinvar_data:
 
     @staticmethod
     def infer_cnv_copy_number(sex, chromosome, variant_type):
-        """infer copy number from the variant type chromosome and sample sex.
+        """infer copy number from the variant type, chromosome and sample sex.
         Args:
-            copy_num (int): copy number for variant
+            sex (Str): Proband sex of the sample.
+            chromosome (Str): Chromosome of the variant.
+            variant_type (Str): Type of the variant.
         Returns:
-            pd.DataFrame: dataframe with inferred copy number column
+            copy number (int) or None if cannot be inferred.
         """
         if chromosome not in ["X", "Y"]:
-            # autosomal chromosome
             if variant_type == "deletion":
                 return 1
             elif variant_type == "amplification":
                 return 3
             else:
-                return 2
+                return None
 
         if sex == "FEMALE":
             if chromosome == "X":
@@ -102,7 +103,7 @@ class clinvar_data:
                 elif variant_type == "amplification":
                     return 3
             if chromosome == "Y":
-                raise ValueError("Female samples should not have Y chromosome")
+                return None
         if sex == "MALE":
             if chromosome == "Y":
                 if variant_type == "deletion":
@@ -114,6 +115,7 @@ class clinvar_data:
                     return 0
                 elif variant_type == "amplification":
                     return 2
+        return None
 
     def retrieve_large_variant_types(self, df, min_size: int, types: list):
         """filter varaints of particular types which are >= a minimum size.
@@ -127,6 +129,9 @@ class clinvar_data:
         copy_nums = df_indels[
             ["Proband_sex", "Chromosome", "Variant_type"]
         ].apply(lambda x: self.infer_cnv_copy_number(x[0], x[1], x[2]), axis=1)
+
+        if copy_nums.isnull().any():
+            logging.warning("Some copy numbers could not be inferred")
 
         df_indels["copy_number"] = copy_nums
 
