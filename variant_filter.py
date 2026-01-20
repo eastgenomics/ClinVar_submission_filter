@@ -143,35 +143,13 @@ def main(
         f"Number of variants after filtering out duplicates: {len(data.df)}"
     )
 
+    data.df = data.insert_uuid(data.df)
+
     data.df = data.remove_reported_with(
         df=data.df, status="REPORTED_INCONCLUSIVE"
     )
     logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
     rolling_count = len(data.df)
-
-    cnv_data = data.retrieve_large_variant_types(
-        df=data.df,
-        types=["amplification", "deletion", "insertion"],
-        min_size=50,
-    )
-    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
-
-    # export filtered indels >= 50nt
-    data.export(
-        cnv_data,
-        output_dir=args.output_dir,
-        suffix="_cnv_50nt.xlsx",
-        index=False,
-        base_name=data.base_name,
-    )
-
-    data.df = data.drop_subset(data.df, cnv_data)
-    logging.info(
-        f"Number of variants after removing indels >= 50nt: {len(data.df)}"
-    )
-    rolling_count = len(data.df)
-
-    data.df = data.insert_uuid(data.df)
 
     data.df = data.reformat_columns(
         data.df,
@@ -205,6 +183,27 @@ def main(
     data.df = data.replace_in_column(data.df, "Proband_HPO_terms", ",", ";")
 
     logging.info("Replaced separator ',' with ';' in Proband_HPO_terms column")
+
+    cnv_data = data.retrieve_large_variant_types(
+        df=data.df,
+        types=["amplification", "deletion", "insertion"],
+        min_size=50,
+    )
+    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
+
+    # export filtered indels >= 50nt
+    data.export(
+        cnv_data,
+        output_dir=args.output_dir,
+        suffix="_cnv_50nt.xlsx",
+        index=False,
+        base_name=data.base_name,
+    )
+
+    data.df = data.drop_subset(data.df, cnv_data)
+    logging.info(
+        f"Number of variants after removing indels >= 50nt: {len(data.df)}"
+    )
 
     # Add class and function calls
 
