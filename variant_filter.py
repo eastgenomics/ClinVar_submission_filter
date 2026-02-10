@@ -188,7 +188,7 @@ def main(
 
     cnv_data = data.retrieve_large_variant_types(
         df=data.df,
-        types=["amplification", "deletion", "insertion"],
+        types=["copy number loss", "copy number gain"],
         min_size=50,
     )
     logging.info(f"CNVs >= 50nt written to file in {output_dir}")
@@ -222,9 +222,8 @@ def main(
     )
 
     # final number of variants
-    final_count = len(df)
+    final_count = len(data.df)
     logging.info(f"Final number of variants: {final_count}")
-    print(data.df)
 
     # split filtered table into b37 and b38 using the "Build" column
     df_b37 = data.df[df["Build"] == "GRCh37"]
