@@ -78,6 +78,19 @@ class clinvar_data:
         )
         return df
 
+    def remove_where_column_equals(self, df, column, value):
+        """filter out variants where a specific column contains a specific string.
+        Args:
+            df (pd.DataFrame): input dataframe
+            column (str): column to check for string
+            string (str): string to filter out
+        """
+        df = df[df[column] != value]
+        logging.info(
+            f"Number of variants after filtering out where {column} equals '{value}': {len(df)}"
+        )
+        return df
+
     @staticmethod
     def infer_cnv_copy_number(sex, chromosome, variant_type):
         """infer copy number from the variant type, chromosome and sample sex.

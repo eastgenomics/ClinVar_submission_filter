@@ -145,8 +145,12 @@ def main(
 
     data.df = data.insert_uuid(data.df)
 
-    data.df = data.remove_reported_with(
-        df=data.df, status="REPORTED_INCONCLUSIVE"
+    data.df = data.remove_where_column_equals(
+        df=data.df, column="Summary_status", value="REPORTED_INCONCLUSIVE"
+    )
+
+    data.df = data.remove_where_column_equals(
+        df=data.df, column="Classification", value="not_assessed"
     )
     logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
     rolling_count = len(data.df)
