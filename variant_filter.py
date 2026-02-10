@@ -184,6 +184,8 @@ def main(
 
     logging.info("Replaced separator ',' with ';' in Proband_HPO_terms column")
 
+    data.df = data.reformat_variant_type(data.df)
+
     cnv_data = data.retrieve_large_variant_types(
         df=data.df,
         types=["amplification", "deletion", "insertion"],

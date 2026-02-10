@@ -89,31 +89,55 @@ class clinvar_data:
             copy number (int) or None if cannot be inferred.
         """
         if chromosome not in ["X", "Y"]:
-            if variant_type == "deletion":
+            if (
+                variant_type == "copy number loss"
+                or variant_type == "deletion"
+            ):
                 return 1
-            elif variant_type == "amplification":
+            elif (
+                variant_type == "copy number gain"
+                or variant_type == "amplification"
+            ):
                 return 3
             else:
                 return None
 
         if sex == "FEMALE":
             if chromosome == "X":
-                if variant_type == "deletion":
+                if (
+                    variant_type == "copy number loss"
+                    or variant_type == "deletion"
+                ):
                     return 1
-                elif variant_type == "amplification":
+                elif (
+                    variant_type == "copy number gain"
+                    or variant_type == "amplification"
+                ):
                     return 3
             if chromosome == "Y":
                 return None
         if sex == "MALE":
             if chromosome == "Y":
-                if variant_type == "deletion":
+                if (
+                    variant_type == "copy number loss"
+                    or variant_type == "deletion"
+                ):
                     return 0
-                elif variant_type == "amplification":
+                elif (
+                    variant_type == "copy number gain"
+                    or variant_type == "amplification"
+                ):
                     return 2
             if chromosome == "X":
-                if variant_type == "deletion":
+                if (
+                    variant_type == "copy number loss"
+                    or variant_type == "deletion"
+                ):
                     return 0
-                elif variant_type == "amplification":
+                elif (
+                    variant_type == "copy number gain"
+                    or variant_type == "amplification"
+                ):
                     return 2
         return None
 
@@ -142,6 +166,28 @@ class clinvar_data:
             f"Number of {types} larger than {min_size}nt: {len(df_indels_large)}"
         )
         return df_indels_large
+
+    def reformat_variant_type(self, df, mapping=None, default=True):
+        """Reformat the Variant_type column based on a provided mapping.
+
+        Args:
+            df (pd.DataFrame): main dataframe
+            mapping (dict): dictionary mapping old variant types to new variant types
+            default (bool, optional): If True, default mapping of CNV types is used. Defaults to True.
+        Returns:
+            pd.DataFrame: dataframe with reformatted Variant_type column
+        """
+        if mapping is None and default:
+            mapping = {
+                "deletion": "copy number loss",
+                "amplification": "copy number gain",
+            }
+
+        df["Variant_type"] = df["Variant_type"].apply(
+            lambda x: mapping.get(x, x)
+        )
+        print(df["Variant_type"].unique())
+        return df
 
     def drop_subset(self, df, subset):
         """Remove a subset of variants from the main dataframe.
