@@ -104,31 +104,31 @@ class clinvar_data:
 
         if chromosome not in ["X", "Y"]:
             if variant_type == "copy number loss":
-                return 1
+                return "1-2"
             elif variant_type == "copy number gain":
-                return 3
+                return "3-2"
             else:
                 return None
 
         if sex == "FEMALE":
             if chromosome == "X":
                 if variant_type == "copy number loss":
-                    return 1
+                    return "1-2"
                 elif variant_type == "copy number gain":
-                    return 3
+                    return "3-2"
             if chromosome == "Y":
                 return None
         if sex == "MALE":
             if chromosome == "Y":
                 if variant_type == "copy number loss":
-                    return 0
+                    return "0-1"
                 elif variant_type == "copy number gain":
-                    return 2
+                    return "2-1"
             if chromosome == "X":
                 if variant_type == "copy number loss":
-                    return 0
+                    return "0-1"
                 elif variant_type == "copy number gain":
-                    return 2
+                    return "2-1"
         return None
 
     def retrieve_large_variant_types(self, df, min_size: int, types: list):
@@ -140,14 +140,18 @@ class clinvar_data:
         """
         df_indels = df[df["Variant_type"].isin(types)]
 
-        copy_nums = df_indels[
-            ["Proband_sex", "Chromosome", "Variant_type"]
-        ].apply(lambda x: self.infer_cnv_copy_number(x[0], x[1], x[2]), axis=1)
+        df_indels[["copy number", "expected copy number"]] = (
+            df_indels[["Proband_sex", "Chromosome", "Variant_type"]]
+            .apply(
+                lambda x: self.infer_cnv_copy_number(x[0], x[1], x[2]), axis=1
+            )
+            .str.split("-", expand=True)
+        )
 
-        if copy_nums.isnull().any():
+        if df_indels["copy number"].isnull().any():
             logging.warning("Some copy numbers could not be inferred")
 
-        df_indels["copy_number"] = copy_nums
+        # df_indels["copy_number"] = copy_nums
 
         df_indels_large = df_indels[
             (df_indels["Stop"] - df_indels["Start"]) >= min_size
