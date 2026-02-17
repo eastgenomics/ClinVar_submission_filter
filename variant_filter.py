@@ -137,10 +137,19 @@ def main(
         f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
     )
 
-    rolling_count = len(df)
+    rolling_count = len(data.df)
 
     logging.info(
         f"Number of variants after filtering out duplicates: {len(data.df)}"
+    )
+
+    # drop variants with Mondo_code "MONDO:0021136" (generic rare disease)
+    data.df = data.df[data.df["Mondo_code"] != "MONDO:0021136"]
+
+    rolling_count = len(data.df)
+
+    logging.info(
+        f"Number of variants after filtering out generic rare MONDO codes: {len(data.df)}"
     )
 
     data.df = data.insert_uuid(data.df)

@@ -151,8 +151,6 @@ class clinvar_data:
         if df_indels["copy number"].isnull().any():
             logging.warning("Some copy numbers could not be inferred")
 
-        # df_indels["copy_number"] = copy_nums
-
         df_indels_large = df_indels[
             (df_indels["Stop"] - df_indels["Start"]) >= min_size
         ]
