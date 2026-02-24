@@ -107,7 +107,8 @@ class clinvar_data:
             chromosome (Str): Chromosome of the variant.
             variant_type (Str): Type of the variant.
         Returns:
-            copy number (int) or None if cannot be inferred.
+            copy number (str) or None if cannot be inferred. Format is "copy number-expected copy number"
+                where expected copy number is based on chromosome and sex.
         """
         if loss_term is None:
             loss_term = self.loss_term
