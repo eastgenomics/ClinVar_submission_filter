@@ -154,7 +154,6 @@ class clinvar_data:
             df_indels = df[
                 df["Variant_type"].isin([self.loss_term, self.gain_term])
             ].copy()
-        print(df_indels.head())
 
         df_indels[["copy number", "expected copy number"]] = (
             df_indels[["Proband_sex", "Chromosome", "Variant_type"]]
