@@ -245,8 +245,8 @@ def main(
     logging.info(f"Final number of variants: {final_count}")
 
     # split filtered table into b37 and b38 using the "Build" column
-    df_b37 = data.df[df["Build"] == "GRCh37"]
-    df_b38 = data.df[df["Build"] == "GRCh38"]
+    df_b37 = data.df[data.df["Build"] == "GRCh37"]
+    df_b38 = data.df[data.df["Build"] == "GRCh38"]
     logging.info(f"Number of GRCh37 variants: {len(df_b37)}")
     logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
     # write to output file
