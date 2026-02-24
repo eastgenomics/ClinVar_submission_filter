@@ -288,7 +288,7 @@ def main(
         f"GRCh38 variants written to file: {data.base_name}_b38_filtered.xlsx"
     )
     logging.info(
-        f"Indels >= 50nt written to file: {data.base_name}_indels_50nt.xlsx"
+        f"Indels >= 50nt written to file: {data.base_name}_cnv_50nt.xlsx"
     )
     logging.info("Variant filtering script completed successfully")
 
