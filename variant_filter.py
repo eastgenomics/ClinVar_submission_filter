@@ -210,7 +210,6 @@ def main(
         df=data.df,
         min_size=50,
     )
-    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
 
     # export filtered indels >= 50nt
     data.export(
@@ -220,6 +219,8 @@ def main(
         index=False,
         base_name=data.base_name,
     )
+
+    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
 
     data.df = data.drop_subset(data.df, cnv_data)
     logging.info(
