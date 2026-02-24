@@ -164,7 +164,7 @@ class clinvar_data:
 
         Args:
             df (pd.DataFrame): main dataframe
-            mapping (dict): dictionary mapping old variant types to new variant types
+            mapping (dict, optional): dictionary mapping old variant types to new variant types
             default (bool, optional): If True, default mapping of CNV types is used. Defaults to True.
         Returns:
             pd.DataFrame: dataframe with reformatted Variant_type column
@@ -174,6 +174,26 @@ class clinvar_data:
                 "deletion": "copy number loss",
                 "amplification": "copy number gain",
             }
+        elif mapping is not None and not default:
+            if "deletion" not in mapping or "amplification" not in mapping:
+                logging.error(
+                    "Custom mapping must include 'deletion' and 'amplification' keys when default is False"
+                )
+                raise ValueError(
+                    "Custom mapping must include 'deletion' and 'amplification' keys when default is False"
+                )
+        elif mapping is not None and default:
+            logging.error(
+                "Cannot use default mapping when custom mapping is provided"
+            )
+            raise ValueError(
+                "Cannot use default mapping when custom mapping is provided"
+            )
+        elif mapping is None and not default:
+            logging.error("No mapping provided for reformatting variant types")
+            raise ValueError(
+                "No mapping provided for reformatting variant types"
+            )
 
         df["Variant_type"] = df["Variant_type"].apply(
             lambda x: mapping.get(x, x)
