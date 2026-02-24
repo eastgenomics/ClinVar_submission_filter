@@ -133,24 +133,21 @@ def main(
 
     # filter out duplicate variants
     data.df = data.filter_duplicates(data.df)
+
     logging.info(
-        f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
+        f"Number of duplicate variants removed: {rolling_count - len(data.df)}"
     )
 
     rolling_count = len(data.df)
-
-    logging.info(
-        f"Number of variants after filtering out duplicates: {len(data.df)}"
-    )
 
     # drop variants with Mondo_code "MONDO:0021136" (generic rare disease)
     data.df = data.df[data.df["Mondo_code"] != "MONDO:0021136"]
 
-    rolling_count = len(data.df)
-
     logging.info(
-        f"Number of variants after filtering out generic rare MONDO codes: {len(data.df)}"
+        f"Number of variants filtered out for having generic rare MONDO codes: {rolling_count - len(data.df)}"
     )
+
+    rolling_count = len(data.df)
 
     data.df = data.insert_uuid(data.df)
 
@@ -158,11 +155,20 @@ def main(
         df=data.df, column="Summary_status", value="REPORTED_INCONCLUSIVE"
     )
 
+    logging.info(
+        f"Number of variants filtered out for having Summary_status = REPORTED_INCONCLUSIVE: {rolling_count - len(data.df)}"
+    )
+
+    rolling_count = len(data.df)
+
     data.df = data.remove_where_column_equals(
         df=data.df, column="Classification", value="not_assessed"
     )
-    logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
+    logging.info(
+        f"variants filtered where Classification = not_assessed: {rolling_count - len(data.df)}"
+    )
     rolling_count = len(data.df)
+    logging.info(f"Number of variants after filtering: {rolling_count}")
 
     data.df = data.reformat_columns(
         data.df,
@@ -172,6 +178,7 @@ def main(
         new_column="Classification_reformated",
         exhaustive=False,
     )
+
     logging.info("Reformatted clinical significance column")
     logging.info(
         f"Number of variants with unknown clinical significance: \
