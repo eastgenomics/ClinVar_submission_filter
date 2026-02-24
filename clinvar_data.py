@@ -83,7 +83,7 @@ class clinvar_data:
         Args:
             df (pd.DataFrame): input dataframe
             column (str): column to check for string
-            string (str): string to filter out
+            value (str): value in column to filter out variants.
         """
         df = df[df[column] != value]
         logging.info(
