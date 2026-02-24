@@ -12,6 +12,8 @@ class clinvar_data:
         self.df = df
         self.base_name = os.path.splitext(os.path.basename(input_file))[0]
         self.output_dir = output_dir
+        self.loss_term = None
+        self.gain_term = None
 
     @staticmethod
     def export(df, output_dir, suffix, base_name, index=False):
