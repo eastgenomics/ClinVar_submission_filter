@@ -96,8 +96,8 @@ class clinvar_data:
         sex,
         chromosome,
         variant_type,
-        loss_terms=None,
-        gain_terms=None,
+        loss_term=None,
+        gain_term=None,
     ):
         """infer copy number from the variant type, chromosome and sample sex.
         Args:
@@ -107,10 +107,10 @@ class clinvar_data:
         Returns:
             copy number (int) or None if cannot be inferred.
         """
-        if loss_terms is None:
-            loss_term = self.loss_terms
-        if gain_terms is None:
-            gain_term = self.gain_terms
+        if loss_term is None:
+            loss_term = self.loss_term
+        if gain_term is None:
+            gain_term = self.gain_term
 
         if chromosome not in ["X", "Y"]:
             if variant_type == loss_term:
@@ -152,7 +152,7 @@ class clinvar_data:
             df_indels = df[df["Variant_type"].isin(types)].copy()
         else:
             df_indels = df[
-                df["Variant_type"].isin([self.loss_terms, self.gain_terms])
+                df["Variant_type"].isin([self.loss_term, self.gain_term])
             ].copy()
         print(df_indels.head())
 
@@ -214,8 +214,8 @@ class clinvar_data:
         df["Variant_type"] = df["Variant_type"].apply(
             lambda x: mapping.get(x, x)
         )
-        self.gain_terms = mapping.get("amplification")
-        self.loss_terms = mapping.get("deletion")
+        self.gain_term = mapping.get("amplification")
+        self.loss_term = mapping.get("deletion")
         return df
 
     def drop_subset(self, df, subset):
