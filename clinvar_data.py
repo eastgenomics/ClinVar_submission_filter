@@ -138,7 +138,7 @@ class clinvar_data:
             min_size (int): minimum size of the indel
             types (list): list of variant types to filter
         """
-        df_indels = df[df["Variant_type"].isin(types)]
+        df_indels = df[df["Variant_type"].isin(types)].copy()
 
         df_indels[["copy number", "expected copy number"]] = (
             df_indels[["Proband_sex", "Chromosome", "Variant_type"]]
