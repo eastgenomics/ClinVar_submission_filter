@@ -91,8 +91,14 @@ class clinvar_data:
         )
         return df
 
-    @staticmethod
-    def infer_cnv_copy_number(sex, chromosome, variant_type):
+    def infer_cnv_copy_number(
+        self,
+        sex,
+        chromosome,
+        variant_type,
+        loss_terms=None,
+        gain_terms=None,
+    ):
         """infer copy number from the variant type, chromosome and sample sex.
         Args:
             sex (Str): Proband sex of the sample.
@@ -101,44 +107,54 @@ class clinvar_data:
         Returns:
             copy number (int) or None if cannot be inferred.
         """
+        if loss_terms is None:
+            loss_term = self.loss_terms
+        if gain_terms is None:
+            gain_term = self.gain_terms
 
         if chromosome not in ["X", "Y"]:
-            if variant_type == "copy number loss":
+            if variant_type == loss_term:
                 return "1-2"
-            elif variant_type == "copy number gain":
+            elif variant_type == gain_term:
                 return "3-2"
             else:
                 return None
 
         if sex == "FEMALE":
             if chromosome == "X":
-                if variant_type == "copy number loss":
+                if variant_type == loss_term:
                     return "1-2"
-                elif variant_type == "copy number gain":
+                elif variant_type == gain_term:
                     return "3-2"
             if chromosome == "Y":
                 return None
         if sex == "MALE":
             if chromosome == "Y":
-                if variant_type == "copy number loss":
+                if variant_type == loss_term:
                     return "0-1"
-                elif variant_type == "copy number gain":
+                elif variant_type == gain_term:
                     return "2-1"
             if chromosome == "X":
-                if variant_type == "copy number loss":
+                if variant_type == loss_term:
                     return "0-1"
-                elif variant_type == "copy number gain":
+                elif variant_type == gain_term:
                     return "2-1"
         return None
 
-    def retrieve_large_variant_types(self, df, min_size: int, types: list):
+    def retrieve_large_variant_types(self, df, min_size: int, types=None):
         """filter varaints of particular types which are >= a minimum size.
         Args:
             df (pd.DataFrame): input dataframe
             min_size (int): minimum size of the indel
-            types (list): list of variant types to filter
+            types (list, optional): list of variant types to filter
         """
-        df_indels = df[df["Variant_type"].isin(types)].copy()
+        if types is not None:
+            df_indels = df[df["Variant_type"].isin(types)].copy()
+        else:
+            df_indels = df[
+                df["Variant_type"].isin([self.loss_terms, self.gain_terms])
+            ].copy()
+        print(df_indels.head())
 
         df_indels[["copy number", "expected copy number"]] = (
             df_indels[["Proband_sex", "Chromosome", "Variant_type"]]
@@ -198,7 +214,8 @@ class clinvar_data:
         df["Variant_type"] = df["Variant_type"].apply(
             lambda x: mapping.get(x, x)
         )
-
+        self.gain_terms = mapping.get("amplification")
+        self.loss_terms = mapping.get("deletion")
         return df
 
     def drop_subset(self, df, subset):

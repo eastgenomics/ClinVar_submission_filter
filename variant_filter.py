@@ -197,11 +197,17 @@ def main(
 
     logging.info("Replaced separator ',' with ';' in Proband_HPO_terms column")
 
-    data.df = data.reformat_variant_type(data.df)
+    data.df = data.reformat_variant_type(
+        data.df,
+        mapping={
+            "deletion": "copy number loss",
+            "amplification": "copy number gain",
+        },
+        default=False,
+    )
 
     cnv_data = data.retrieve_large_variant_types(
         df=data.df,
-        types=["copy number loss", "copy number gain"],
         min_size=50,
     )
     logging.info(f"CNVs >= 50nt written to file in {output_dir}")
