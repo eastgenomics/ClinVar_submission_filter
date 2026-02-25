@@ -12,6 +12,8 @@ class clinvar_data:
         self.df = df
         self.base_name = os.path.splitext(os.path.basename(input_file))[0]
         self.output_dir = output_dir
+        self.loss_term = None
+        self.gain_term = None
 
     @staticmethod
     def export(df, output_dir, suffix, base_name, index=False):
@@ -78,62 +80,94 @@ class clinvar_data:
         )
         return df
 
-    @staticmethod
-    def infer_cnv_copy_number(sex, chromosome, variant_type):
+    def remove_where_column_equals(self, df, column, value):
+        """filter out variants where a specific column contains a specific string.
+        Args:
+            df (pd.DataFrame): input dataframe
+            column (str): column to check for string
+            value (str): value in column to filter out variants.
+        """
+        df = df[df[column] != value]
+        logging.info(
+            f"Number of variants after filtering out where {column} equals '{value}': {len(df)}"
+        )
+        return df
+
+    def infer_cnv_copy_number(
+        self,
+        sex,
+        chromosome,
+        variant_type,
+        loss_term=None,
+        gain_term=None,
+    ):
         """infer copy number from the variant type, chromosome and sample sex.
         Args:
             sex (Str): Proband sex of the sample.
             chromosome (Str): Chromosome of the variant.
             variant_type (Str): Type of the variant.
         Returns:
-            copy number (int) or None if cannot be inferred.
+            copy number (str) or None if cannot be inferred. Format is "copy number-expected copy number"
+                where expected copy number is based on chromosome and sex.
         """
+        if loss_term is None:
+            loss_term = self.loss_term
+        if gain_term is None:
+            gain_term = self.gain_term
+
         if chromosome not in ["X", "Y"]:
-            if variant_type == "deletion":
-                return 1
-            elif variant_type == "amplification":
-                return 3
+            if variant_type == loss_term:
+                return "1-2"
+            elif variant_type == gain_term:
+                return "3-2"
             else:
                 return None
 
         if sex == "FEMALE":
             if chromosome == "X":
-                if variant_type == "deletion":
-                    return 1
-                elif variant_type == "amplification":
-                    return 3
+                if variant_type == loss_term:
+                    return "1-2"
+                elif variant_type == gain_term:
+                    return "3-2"
             if chromosome == "Y":
                 return None
         if sex == "MALE":
             if chromosome == "Y":
-                if variant_type == "deletion":
-                    return 0
-                elif variant_type == "amplification":
-                    return 2
+                if variant_type == loss_term:
+                    return "0-1"
+                elif variant_type == gain_term:
+                    return "2-1"
             if chromosome == "X":
-                if variant_type == "deletion":
-                    return 0
-                elif variant_type == "amplification":
-                    return 2
+                if variant_type == loss_term:
+                    return "0-1"
+                elif variant_type == gain_term:
+                    return "2-1"
         return None
 
-    def retrieve_large_variant_types(self, df, min_size: int, types: list):
+    def retrieve_large_variant_types(self, df, min_size: int, types=None):
         """filter varaints of particular types which are >= a minimum size.
         Args:
             df (pd.DataFrame): input dataframe
             min_size (int): minimum size of the indel
-            types (list): list of variant types to filter
+            types (list, optional): list of variant types to filter
         """
-        df_indels = df[df["Variant_type"].isin(types)]
+        if types is not None:
+            df_indels = df[df["Variant_type"].isin(types)].copy()
+        else:
+            df_indels = df[
+                df["Variant_type"].isin([self.loss_term, self.gain_term])
+            ].copy()
 
-        copy_nums = df_indels[
-            ["Proband_sex", "Chromosome", "Variant_type"]
-        ].apply(lambda x: self.infer_cnv_copy_number(x[0], x[1], x[2]), axis=1)
+        df_indels[["copy number", "expected copy number"]] = (
+            df_indels[["Proband_sex", "Chromosome", "Variant_type"]]
+            .apply(
+                lambda x: self.infer_cnv_copy_number(x[0], x[1], x[2]), axis=1
+            )
+            .str.split("-", expand=True)
+        )
 
-        if copy_nums.isnull().any():
+        if df_indels["copy number"].isnull().any():
             logging.warning("Some copy numbers could not be inferred")
-
-        df_indels["copy_number"] = copy_nums
 
         df_indels_large = df_indels[
             (df_indels["Stop"] - df_indels["Start"]) >= min_size
@@ -142,6 +176,49 @@ class clinvar_data:
             f"Number of {types} larger than {min_size}nt: {len(df_indels_large)}"
         )
         return df_indels_large
+
+    def reformat_variant_type(self, df, mapping=None, default=True):
+        """Reformat the Variant_type column based on a provided mapping.
+
+        Args:
+            df (pd.DataFrame): main dataframe
+            mapping (dict, optional): dictionary mapping old variant types to new variant types
+            default (bool, optional): If True, default mapping of CNV types is used. Defaults to True.
+        Returns:
+            pd.DataFrame: dataframe with reformatted Variant_type column
+        """
+        if mapping is None and default:
+            mapping = {
+                "deletion": "copy number loss",
+                "amplification": "copy number gain",
+            }
+        elif mapping is not None and not default:
+            if "deletion" not in mapping or "amplification" not in mapping:
+                logging.error(
+                    "Custom mapping must include 'deletion' and 'amplification' keys when default is False"
+                )
+                raise ValueError(
+                    "Custom mapping must include 'deletion' and 'amplification' keys when default is False"
+                )
+        elif mapping is not None and default:
+            logging.error(
+                "Cannot use default mapping when custom mapping is provided"
+            )
+            raise ValueError(
+                "Cannot use default mapping when custom mapping is provided"
+            )
+        elif mapping is None and not default:
+            logging.error("No mapping provided for reformatting variant types")
+            raise ValueError(
+                "No mapping provided for reformatting variant types"
+            )
+
+        df["Variant_type"] = df["Variant_type"].apply(
+            lambda x: mapping.get(x, x)
+        )
+        self.gain_term = mapping.get("amplification")
+        self.loss_term = mapping.get("deletion")
+        return df
 
     def drop_subset(self, df, subset):
         """Remove a subset of variants from the main dataframe.

@@ -133,45 +133,42 @@ def main(
 
     # filter out duplicate variants
     data.df = data.filter_duplicates(data.df)
-    logging.info(
-        f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
-    )
-
-    rolling_count = len(df)
 
     logging.info(
-        f"Number of variants after filtering out duplicates: {len(data.df)}"
+        f"Number of duplicate variants removed: {rolling_count - len(data.df)}"
     )
 
-    data.df = data.remove_reported_with(
-        df=data.df, status="REPORTED_INCONCLUSIVE"
-    )
-    logging.info(f"variants filtered out: {rolling_count - len(data.df)}")
     rolling_count = len(data.df)
 
-    cnv_data = data.retrieve_large_variant_types(
-        df=data.df,
-        types=["amplification", "deletion", "insertion"],
-        min_size=50,
-    )
-    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
+    # drop variants with Mondo_code "MONDO:0021136" (generic rare disease)
+    data.df = data.df[data.df["Mondo_code"] != "MONDO:0021136"]
 
-    # export filtered indels >= 50nt
-    data.export(
-        cnv_data,
-        output_dir=args.output_dir,
-        suffix="_cnv_50nt.xlsx",
-        index=False,
-        base_name=data.base_name,
-    )
-
-    data.df = data.drop_subset(data.df, cnv_data)
     logging.info(
-        f"Number of variants after removing indels >= 50nt: {len(data.df)}"
+        f"Number of variants filtered out for having generic rare MONDO codes: {rolling_count - len(data.df)}"
     )
+
     rolling_count = len(data.df)
 
     data.df = data.insert_uuid(data.df)
+
+    data.df = data.remove_where_column_equals(
+        df=data.df, column="Summary_status", value="REPORTED_INCONCLUSIVE"
+    )
+
+    logging.info(
+        f"Number of variants filtered out for having Summary_status = REPORTED_INCONCLUSIVE: {rolling_count - len(data.df)}"
+    )
+
+    rolling_count = len(data.df)
+
+    data.df = data.remove_where_column_equals(
+        df=data.df, column="Classification", value="not_assessed"
+    )
+    logging.info(
+        f"variants filtered where Classification = not_assessed: {rolling_count - len(data.df)}"
+    )
+    rolling_count = len(data.df)
+    logging.info(f"Number of variants after filtering: {rolling_count}")
 
     data.df = data.reformat_columns(
         data.df,
@@ -181,6 +178,7 @@ def main(
         new_column="Classification_reformated",
         exhaustive=False,
     )
+
     logging.info("Reformatted clinical significance column")
     logging.info(
         f"Number of variants with unknown clinical significance: \
@@ -206,6 +204,36 @@ def main(
 
     logging.info("Replaced separator ',' with ';' in Proband_HPO_terms column")
 
+    data.df = data.reformat_variant_type(
+        data.df,
+        mapping={
+            "deletion": "copy number loss",
+            "amplification": "copy number gain",
+        },
+        default=False,
+    )
+
+    cnv_data = data.retrieve_large_variant_types(
+        df=data.df,
+        min_size=50,
+    )
+
+    # export filtered indels >= 50nt
+    data.export(
+        cnv_data,
+        output_dir=args.output_dir,
+        suffix="_cnv_50nt.xlsx",
+        index=False,
+        base_name=data.base_name,
+    )
+
+    logging.info(f"CNVs >= 50nt written to file in {output_dir}")
+
+    data.df = data.drop_subset(data.df, cnv_data)
+    logging.info(
+        f"Number of variants after removing indels >= 50nt: {len(data.df)}"
+    )
+
     # Add class and function calls
 
     # check df has no empty values outside of the Stop and Variant_type columns
@@ -221,13 +249,12 @@ def main(
     )
 
     # final number of variants
-    final_count = len(df)
+    final_count = len(data.df)
     logging.info(f"Final number of variants: {final_count}")
-    print(data.df)
 
     # split filtered table into b37 and b38 using the "Build" column
-    df_b37 = data.df[df["Build"] == "GRCh37"]
-    df_b38 = data.df[df["Build"] == "GRCh38"]
+    df_b37 = data.df[data.df["Build"] == "GRCh37"]
+    df_b38 = data.df[data.df["Build"] == "GRCh38"]
     logging.info(f"Number of GRCh37 variants: {len(df_b37)}")
     logging.info(f"Number of GRCh38 variants: {len(df_b38)}")
     # write to output file
@@ -269,7 +296,7 @@ def main(
         f"GRCh38 variants written to file: {data.base_name}_b38_filtered.xlsx"
     )
     logging.info(
-        f"Indels >= 50nt written to file: {data.base_name}_indels_50nt.xlsx"
+        f"Indels >= 50nt written to file: {data.base_name}_cnv_50nt.xlsx"
     )
     logging.info("Variant filtering script completed successfully")
 
