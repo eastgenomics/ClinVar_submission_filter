@@ -117,18 +117,47 @@ def main(
     output_dir=args.output_dir,
 ):
     data = clinvar_data(df, input_file, output_dir)
-
-    # store variants with missing data in a separate dataframe
-    missing_data = data.filter_missing(data.df)
     rolling_count = len(data.df)
+    # store variants with missing data in a separate dataframe
+    # missing_data = data.filter_missing(data.df)
+    missing_data = data.df.loc[
+        ~data.df.index.isin(
+            df.dropna(
+                subset=[
+                    "Start",
+                    "Chromosome",
+                    "mondo_pheno",
+                    "Classification",
+                    "Build",
+                ],
+                how="any",
+                inplace=False,
+            ).index
+        )
+    ]
+
+    data.df.dropna(
+        subset=[
+            "Start",
+            "Chromosome",
+            "mondo_pheno",
+            "Classification",
+            "Build",
+        ],
+        how="any",
+        inplace=True,
+    )
+
     logging.info(
-        f"Number of variants that have been removed due to missing data: {rolling_count - len(missing_data)}"
+        f"Number of variants with missing data that have been moved to a separate dataframe: {rolling_count - len(data.df)}"
+    )
+
+    logging.info(
+        f"Number of variants that have been removed due to missing data: {rolling_count - len(data.df)}"
     )
     # filter out varaints with missing data in required columns
-    data.df = data.filter_na(data.df)
-    logging.info(
-        f"Number of variants with missing data removed: {rolling_count - len(data.df)}"
-    )
+    # data.df = data.filter_na(data.df)
+
     rolling_count = len(data.df)
 
     # filter out duplicate variants

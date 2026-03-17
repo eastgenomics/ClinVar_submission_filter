@@ -89,7 +89,7 @@ class clinvar_data:
         """
         df = df[df[column] != value]
         logging.info(
-            f"Number of variants after filtering out where {column} equals '{value}': {len(df)}"
+            f"Number of remaining variants after filtering out where {column} equals '{value}': {len(df)}"
         )
         return df
 
