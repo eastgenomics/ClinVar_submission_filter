@@ -118,8 +118,7 @@ def main(
 ):
     data = clinvar_data(df, input_file, output_dir)
     rolling_count = len(data.df)
-    # store variants with missing data in a separate dataframe
-    # missing_data = data.filter_missing(data.df)
+    # store variants with missing data in required columns to a separate dataframe
     missing_data = data.df.loc[
         ~data.df.index.isin(
             df.dropna(
@@ -136,6 +135,7 @@ def main(
         )
     ]
 
+    # now drop variants with missing data in required columns from main dataframe
     data.df.dropna(
         subset=[
             "Start",
@@ -155,8 +155,6 @@ def main(
     logging.info(
         f"Number of variants that have been removed due to missing data: {rolling_count - len(data.df)}"
     )
-    # filter out varaints with missing data in required columns
-    # data.df = data.filter_na(data.df)
 
     rolling_count = len(data.df)
 
