@@ -20,38 +20,6 @@ class clinvar_data:
         output = os.path.join(output_dir, f"{base_name}{suffix}")
         df.to_excel(output, index=index)
 
-    def filter_missing(self, df):
-
-        #  extract invalid variants due to missing data
-
-        filter_df = df[
-            df[
-                [
-                    "Start",
-                    "Chromosome",
-                    "mondo_pheno",
-                    "Classification",
-                    "Build",
-                ]
-            ]
-            .isnull()
-            .any(axis=1)
-        ]
-        return filter_df
-
-    def filter_na(self, df):
-        ## filter out variants with missing data
-        filter_df = df.dropna(
-            subset=[
-                "Start",
-                "Chromosome",
-                "mondo_pheno",
-                "Classification",
-                "Build",
-            ]
-        )
-        return filter_df
-
     def filter_duplicates(self, df):
         ## filter out duplicates
         df = df.drop_duplicates(
