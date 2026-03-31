@@ -331,13 +331,9 @@ class clinvar_data:
         Returns:
             pd.DataFrame: dataframe with UUID column inserted
         """
-        df.insert(
-            0,
-            "UUID",
-            [
-                f"uid_{uuid.uuid1().time}"
-                for _ in range(len(df))
-                if time.sleep(0.001) is None
-            ],
-        )
+        uuids = []
+        for _ in range(len(df)):
+            uuids.append(f"uid_{uuid.uuid1().time}")
+            time.sleep(0.001)
+        df.insert(0, "UUID", uuids)
         return df
