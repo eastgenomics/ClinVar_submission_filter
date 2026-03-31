@@ -117,6 +117,8 @@ def main(
     output_dir=args.output_dir,
 ):
     data = clinvar_data(df, input_file, output_dir)
+    # all variants in the input file are sequence alignment based
+    data.df["Structural variant method/analysis type"] = "Sequence alignment"
     rolling_count = len(data.df)
     # store variants with missing data in required columns to a separate dataframe
     missing_data = data.df.loc[
