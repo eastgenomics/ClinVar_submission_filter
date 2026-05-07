@@ -19,6 +19,13 @@ from reformat_functions import (
     insert_uuid
 )
 
+from export_functions import (
+   create_snv_df,
+   create_cnv_df,
+   split_builds,
+   export_df_to_xl
+)
+
 
 def parse_args() -> argparse.Namespace:
     """ Parse CLI arguments.
@@ -116,6 +123,21 @@ def main():
 
     # add UUID column
     df = insert_uuid(df)
+
+    # filter by variant type and genome build
+    snv_df = create_snv_df(df)
+    cnv_df = create_cnv_df(df)
+
+    logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
+    snv_b37, snv_b38 = split_builds(snv_df)
+    logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
+    cnv_b37, cnv_b38 = split_builds(cnv_df)
+
+    # export files
+    export_df_to_xl(snv_b37, args.output_dir, base_name, "_GRCh37_SNV.xlsx")
+    export_df_to_xl(snv_b38, args.output_dir, base_name, "_GRCh38_SNV.xlsx")
+    export_df_to_xl(cnv_b37, args.output_dir, base_name, "_GRCh37_CNV.xlsx")
+    export_df_to_xl(cnv_b38, args.output_dir, base_name, "_GRCh38_CNV.xlsx")
 
     logging.info("Variant filtering script completed successfully.")
 
