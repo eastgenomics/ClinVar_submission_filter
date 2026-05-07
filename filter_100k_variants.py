@@ -4,6 +4,14 @@ import argparse
 import logging
 import os.path
 import pandas as pd
+import config
+
+from row_drop_functions import (
+    drop_missing_data_rows,
+    drop_duplicates,
+    drop_generic_mondo,
+    drop_where_column_equals
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -85,6 +93,13 @@ def main():
     logging.info(f"Reading input file: {args.input_file}")
     df = pd.read_excel(args.input_file)
     logging.info(f"File read into dataframe containing {len(df)} variants\n")
+
+    # drop rows with missing, duplicate, or inappropriate values
+    df = drop_missing_data_rows(df, config.REQUIRED_FIELDS)
+    df = drop_duplicates(df, config.DUPLICATE_FIELDS)
+    df = drop_generic_mondo(df, config.GENERIC_MONDO)
+    df = drop_where_column_equals(df, "Summary_status", "REPORTED_INCONCLUSIVE")
+    df = drop_where_column_equals(df, "Classification", "not_assessed")
 
     logging.info("Variant filtering script completed successfully.")
 
