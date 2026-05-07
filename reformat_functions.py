@@ -99,7 +99,7 @@ def insert_uuid(df) -> pd.DataFrame:
         pd.DataFrame: Dataframe with UUID column inserted
     """
 
-    logging.info(f"Adding UUID column to dataframe\n")
+    logging.info("Adding UUID column to dataframe\n")
 
     uuids = []
 

@@ -44,7 +44,7 @@ def drop_duplicates(df, key_fields) -> pd.DataFrame:
     before_drop = len(df)
 
     # ensure column to sort by is in datetime format
-    df["LastModifiedDate"] = pd.to_datetime(df["LastModifiedDate"], format="%Y-%m-%d", errors='coerce')
+    df["LastModifiedDate"] = pd.to_datetime(df["LastModifiedDate"], errors='coerce')
 
     df = df.sort_values("LastModifiedDate", na_position='first').drop_duplicates(subset=key_fields, keep='last')
 
