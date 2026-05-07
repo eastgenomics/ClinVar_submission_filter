@@ -13,6 +13,12 @@ from row_drop_functions import (
     drop_where_column_equals
 )
 
+from reformat_functions import (
+    reformat_column,
+    replace_single_column_value,
+    insert_uuid
+)
+
 
 def parse_args() -> argparse.Namespace:
     """ Parse CLI arguments.
@@ -100,6 +106,16 @@ def main():
     df = drop_generic_mondo(df, config.GENERIC_MONDO)
     df = drop_where_column_equals(df, "Summary_status", "REPORTED_INCONCLUSIVE")
     df = drop_where_column_equals(df, "Classification", "not_assessed")
+
+    # clean remaining data values
+    df = reformat_column(df, config.MONDO_MAP, "Mondo_code", stringent=True)
+    df = reformat_column(df, config.CLINSIG_MAP, "Classification", new_column="Classification_reformatted", replace=False)
+    df = reformat_column(df, config.CNV_MAP, "Variant_type", stringent=True)
+    df = replace_single_column_value(df, "LastModifiedDate", "T00:00:00Z", "")
+    df = replace_single_column_value(df, "Proband_HPO_terms", ",", ";")
+
+    # add UUID column
+    df = insert_uuid(df)
 
     logging.info("Variant filtering script completed successfully.")
 
