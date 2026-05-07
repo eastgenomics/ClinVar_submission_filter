@@ -119,7 +119,7 @@ def main():
     df = reformat_column(df, config.MONDO_MAP, "Mondo_code", stringent=True)
     df = reformat_column(df, config.CLINSIG_MAP, "Classification", new_column="Classification_reformatted", replace=False)
     df = reformat_column(df, config.CNV_MAP, "Variant_type", stringent=True)
-    df = replace_single_column_value(df, "LastModifiedDate", "T00:00:00Z", "")
+    df = replace_single_column_value(df, "LastModifiedDate", " 00:00:00+00:00", "")
     df = replace_single_column_value(df, "Proband_HPO_terms", ",", ";")
 
     # add UUID column

@@ -83,6 +83,7 @@ def replace_single_column_value(
 
     logging.info(f"Replacing {to_replace} with {replacement} in {column} column\n")
 
+    df[column] = df[column].astype("string")
     df[column] = df[column].str.replace(to_replace, replacement, regex=False)
 
     return df
