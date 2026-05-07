@@ -22,7 +22,7 @@ The script performs the following functions:
 - Export to .xlsx
 
 The script produces 4 output .xlsx files plus a log:
-- GRCh37 SNVs: ```<output_dir>/<filename>__GRCh37_SNV.xlsx```
-- GRCh38 SNVs: ```<output_dir>/<filename>__GRCh38_SNV.xlsx```
-- GRCh37 CNVs: ```<output_dir>/<filename>__GRCh37_CNV.xlsx```
-- GRCh38 CNVs: ```<output_dir>/<filename>__GRCh38_CNV.xlsx```
+- GRCh37 SNVs: ```<output_dir>/<filename>_GRCh37_SNV.xlsx```
+- GRCh38 SNVs: ```<output_dir>/<filename>_GRCh38_SNV.xlsx```
+- GRCh37 CNVs: ```<output_dir>/<filename>_GRCh37_CNV.xlsx```
+- GRCh38 CNVs: ```<output_dir>/<filename>_GRCh38_CNV.xlsx```

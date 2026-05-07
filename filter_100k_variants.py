@@ -1,4 +1,4 @@
-#!usr/bin/env python
+#!/usr/bin/env python
 
 import argparse
 import logging
@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
         "-i",
         "--input_file",
         type=str,
+        required=True,
         help="Path to input Excel file containing ClinVar export data"
     )
 
@@ -94,7 +95,7 @@ def main():
         raise ValueError("Input file must be in .xlsx format")
 
     # extract base name to construct output filenames
-    base_name = args.input_file[:-5]
+    base_name = os.path.splitext(os.path.basename(args.input_file))[0]
 
     # make output dir if it doesn't exist
     os.makedirs(args.output_dir, exist_ok=True)
