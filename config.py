@@ -1,9 +1,9 @@
 REQUIRED_FIELDS = [
-    "Start",
-    "Chromosome",
-    "mondo_pheno",
-    "Classification",
     "Build",
+    "Chromosome",
+    "Start",
+    "Mondo_code",
+    "Classification"
 ]
 
 DUPLICATE_FIELDS = [
