@@ -21,7 +21,8 @@ def reformat_column(
         new_column (str): Name of new column to create if replace=False
         replace (bool): If True, modify column in-place; if False, create new
             column to hold reformatted values
-        stringent (bool): If True, all column values must be in mapping dict
+        stringent (bool): If True, any values not in mapping dict will be set
+            to 'unknown'
 
     Raises:
         BOTH_SET_ERROR: If both 'replace' and 'new_column' are not None
@@ -50,7 +51,7 @@ def reformat_column(
     elif new_column:
         target_column = new_column
 
-    if not stringent:
+    if stringent:
         df[target_column] = df[column].apply(
             lambda x: mapping.get(x, "unknown")
         )
