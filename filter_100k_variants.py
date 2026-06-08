@@ -108,14 +108,18 @@ def main():
     df = pd.read_excel(args.input_file)
     logging.info(f"File read into dataframe containing {len(df)} variants\n")
 
-    # drop rows with missing, duplicate, or inappropriate values
-    df = drop_missing_data_rows(df, config.REQUIRED_FIELDS)
-    df = drop_duplicates(df, config.DUPLICATE_FIELDS)
-    df = drop_generic_mondo(df, config.GENERIC_MONDO)
-    df = drop_where_column_equals(df, "Summary_status", "REPORTED_INCONCLUSIVE")
-    df = drop_where_column_equals(df, "Classification", "not_assessed")
+    # initialise list of dropped rows
+    df['drop_reason'] = ""
+    dropped = []
 
-    # clean remaining data values
+    # drop rows with missing, duplicate, or inappropriate values
+    df, dropped = drop_missing_data_rows(df, dropped, config.REQUIRED_FIELDS)
+    df, dropped = drop_duplicates(df, dropped, config.DUPLICATE_FIELDS)
+    df, dropped = drop_generic_mondo(df, dropped, config.GENERIC_MONDO)
+    df, dropped = drop_where_column_equals(df, dropped, "Summary_status", "REPORTED_INCONCLUSIVE")
+    df, dropped = drop_where_column_equals(df, dropped, "Classification", "not_assessed")
+
+    # clean data values
     df = reformat_column(df, config.MONDO_MAP, "Mondo_code")
     df = reformat_column(df, config.CLINSIG_MAP, "Classification", new_column="Classification_reformatted", replace=False, stringent=True)
     df = reformat_column(df, config.CNV_MAP, "Variant_type")
@@ -126,13 +130,18 @@ def main():
     df = insert_uuid(df)
 
     # filter by variant type and genome build
-    snv_df = create_snv_df(df)
-    cnv_df = create_cnv_df(df)
+    snv_df, dropped = create_snv_df(df, dropped)
+    cnv_df, dropped = create_cnv_df(df, dropped)
 
     logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
     snv_b37, snv_b38 = split_builds(snv_df)
     logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
     cnv_b37, cnv_b38 = split_builds(cnv_df)
+
+    # export df of dropped variants
+    drop_df = pd.DataFrame(dropped, columns=df.columns)
+    drop_df = replace_single_column_value(drop_df, "LastModifiedDate", " 00:00:00+00:00", "")
+    export_df_to_xl(drop_df, args.output_dir, base_name, "_dropped.xlsx")
 
     # export files
     export_df_to_xl(snv_b37, args.output_dir, base_name, "_GRCh37_SNV.xlsx")

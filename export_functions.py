@@ -45,15 +45,17 @@ def infer_cnv_copy_number(sex, chromosome, variant_type) -> list:
     return None
 
 
-def create_snv_df(df, variant_length=50) -> pd.DataFrame:
+def create_snv_df(df, dropped, variant_length=50):
     """ Restrict input dataframe to SNVs under a specified length.
 
     Args:
         df (pd.DataFrame): Input dataframe
+        dropped (list): List of dropped rows
         variant_length (int): Maximum allowable variant length. Defaults to 50.
 
     Returns:
         pd.DataFrame: SNV records with appropriate length
+        list: Updated list of dropped rows
     """
 
     logging.info("Creating SNV dataframe")
@@ -65,71 +67,88 @@ def create_snv_df(df, variant_length=50) -> pd.DataFrame:
         df["Stop"].isnull()
     ].copy()
 
-    initial_snvs = len(snv_df)
-    logging.info(f"SNV dataframe created with {initial_snvs} records")
+    logging.info(f"{len(snv_df)} SNV records initially identified")
 
     # restrict based on variant length
-    snv_df = snv_df[
+    correct_length = snv_df[
         abs(snv_df['Reference'].str.len() - snv_df['Alternate'].str.len())
         < variant_length]
 
-    dropped = initial_snvs - len(snv_df)
-    if dropped != 0:
-        logging.info(f"Dropped {dropped} SNVs longer than {variant_length}nt\n")
+    drop_count = len(snv_df) - len(correct_length)
 
-    return snv_df
+    if drop_count != 0:
+        # append dropped rows to the list
+        dropped_df = snv_df[~snv_df.index.isin(correct_length.index)]
+        dropped_df = dropped_df.assign(drop_reason=f"SNV longer than {variant_length}nt")
+        dropped += dropped_df.values.tolist()
+        logging.info(f"Dropped {drop_count} SNVs longer than {variant_length}nt")
+
+    logging.info(f"SNV dataframe created with {len(correct_length)} records\n")
+
+    return correct_length, dropped
 
 
-def create_cnv_df(df, variant_length=50) -> pd.DataFrame:
+def create_cnv_df(df, dropped, variant_length=50):
     """ Restrict input dataframe to CNVs of at least a specified length.
 
     Args:
         df (pd.DataFrame): Input dataframe
+        dropped (list): List of dropped rows
         variant_length (int): Minimum allowable variant length. Defaults to 50.
 
     Returns:
         pd.DataFrame: CNV records with appropriate length
+        list: Updated list of dropped rows
     """
 
     logging.info("Creating CNV dataframe")
 
-    # create CNV df based on populated fields
-    cnv_df = df[
-        df["Reference"].isnull() & \
-        df["Alternate"].isnull() & \
-        df["Stop"].notnull()
-    ].copy()
+    # select records with CNV variant type
+    cnv_df = df[df["Variant_type"].isin(
+        ['copy number gain', 'copy number loss']
+    )].copy()
 
     initial_cnvs = len(cnv_df)
-    logging.info(f"CNV dataframe created with {initial_cnvs} records\n")
+    logging.info(f"{initial_cnvs} CNV records initially identified")
+
+    # check correct fields are populated
+    correct_fields = cnv_df[
+        cnv_df["Reference"].isnull() & \
+        cnv_df["Alternate"].isnull() & \
+        cnv_df["Stop"].notnull()
+    ]
+
+    # add records with wrong fields to dropped list
+    wrong_fields = len(cnv_df) - len(correct_fields)
+    if wrong_fields != 0:
+        dropped_df = cnv_df[~cnv_df.index.isin(correct_fields.index)]
+        dropped_df = dropped_df.assign(drop_reason="CNV with incorrect fields populated")
+        dropped += dropped_df.values.tolist()
+        logging.info(f"Dropped {wrong_fields} CNVs with incorrect fields")
 
     # restrict based on variant length
-    cnv_df = cnv_df[(cnv_df["Stop"] - cnv_df["Start"]) >= variant_length]
+    correct_length = correct_fields[(correct_fields["Stop"] - correct_fields["Start"]) >= variant_length]
 
-    long_cnvs = len(cnv_df)
-    too_short = initial_cnvs - long_cnvs
+    # add records below required length to dropped list
+    too_short = len(correct_fields) - len(correct_length)
     if too_short != 0:
+        dropped_df = correct_fields[~correct_fields.index.isin(correct_length.index)]
+        dropped_df = dropped_df.assign(drop_reason=f"CNV shorter than {variant_length}nt")
+        dropped += dropped_df.values.tolist()
         logging.info(f"Dropped {too_short} CNVs shorter than {variant_length}nt")
 
-    # ensure CNV records have an appropriate variant type
-    cnv_df = cnv_df[cnv_df["Variant_type"].isin(
-        ['copy number gain', 'copy number loss']
-    )]
-
-    wrong_type = long_cnvs - len(cnv_df)
-    if wrong_type != 0:
-        logging.info(f"Dropped {wrong_type} CNVs with wrong variant type")
-
     # infer CNV copy numbers
-    cnv_df[["copy number", "expected copy number"]] = cnv_df.apply(
+    correct_length[["copy number", "expected copy number"]] = correct_length.apply(
         lambda x: infer_cnv_copy_number(
             x.Proband_sex, x.Chromosome, x.Variant_type),
             axis=1, result_type='expand')
 
-    if cnv_df["copy number"].isnull().any():
+    if correct_length["copy number"].isnull().any():
         logging.warning("Some copy numbers could not be inferred")
 
-    return cnv_df
+    logging.info(f"CNV dataframe created with {len(correct_length)} records\n")
+
+    return correct_length, dropped
 
 
 def split_builds(df) -> pd.DataFrame:

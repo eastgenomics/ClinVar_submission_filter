@@ -32,7 +32,7 @@ def reformat_column(
         pd.DataFrame: Dataframe with new or reformatted column
     """
 
-    logging.info(f"Reformatting column: {column}\n")
+    logging.info(f"Reformatting column: {column}")
 
     # raise error if invalid parameters provided
     BOTH_SET_ERROR = "'replace' and 'new_column' are both set but are mutually exclusive"
@@ -62,6 +62,8 @@ def reformat_column(
 
     else:
         df[target_column] = df[column].apply(lambda x: mapping.get(x,x))
+
+    logging.info(f"{column} reformatted\n")
 
     return df
 
@@ -108,6 +110,6 @@ def insert_uuid(df) -> pd.DataFrame:
         uuids.append(f"uid_{uuid.uuid1().time}")
         time.sleep(0.001)
 
-    df.insert(0, "UUID", uuids)
+    df.insert(len(df.columns), "UUID", uuids)
 
     return df
