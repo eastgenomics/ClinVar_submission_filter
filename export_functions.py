@@ -69,6 +69,11 @@ def create_snv_df(df, dropped, variant_length=50):
 
     logging.info(f"{len(snv_df)} SNV records initially identified")
 
+    # exit if there are no SNVs
+    if len(snv_df) == 0:
+        logging.info("Skipping creation of SNV dataframe\n")
+        return None, dropped
+
     # restrict based on variant length
     correct_length = snv_df[
         abs(snv_df['Reference'].str.len() - snv_df['Alternate'].str.len())
@@ -110,6 +115,11 @@ def create_cnv_df(df, dropped, variant_length=50):
 
     initial_cnvs = len(cnv_df)
     logging.info(f"{initial_cnvs} CNV records initially identified")
+
+    # exit if there are no CNVs
+    if initial_cnvs == 0:
+        logging.info("Skipping creation of CNV dataframe\n")
+        return None, dropped
 
     # check correct fields are populated
     correct_fields = cnv_df[

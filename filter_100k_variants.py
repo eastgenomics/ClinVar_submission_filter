@@ -134,10 +134,14 @@ def main():
     snv_df, dropped = create_snv_df(df, dropped)
     cnv_df, dropped = create_cnv_df(df, dropped)
 
-    logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
-    snv_b37, snv_b38 = split_builds(snv_df)
-    logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
-    cnv_b37, cnv_b38 = split_builds(cnv_df)
+    snv_b37 = snv_b38 = cnv_b37 = cnv_b38 = ""
+
+    if snv_df is not None:
+        logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
+        snv_b37, snv_b38 = split_builds(snv_df)
+    if cnv_df is not None:
+        logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
+        cnv_b37, cnv_b38 = split_builds(cnv_df)
 
     # export df of dropped variants
     drop_df = pd.DataFrame(dropped, columns=df.columns)
