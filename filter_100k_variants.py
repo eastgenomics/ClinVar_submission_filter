@@ -110,7 +110,11 @@ def main():
 
     # initialise list of dropped rows
     df['drop_reason'] = ""
+    df["Classification_reformatted"] = ""
     dropped = []
+
+    # add UUID column
+    df = insert_uuid(df)
 
     # drop rows with missing, duplicate, or inappropriate values
     df, dropped = drop_missing_data_rows(df, dropped, config.REQUIRED_FIELDS)
@@ -125,9 +129,6 @@ def main():
     df = reformat_column(df, config.CNV_MAP, "Variant_type")
     df = replace_single_column_value(df, "LastModifiedDate", " 00:00:00+00:00", "")
     df = replace_single_column_value(df, "Proband_HPO_terms", ",", ";")
-
-    # add UUID column
-    df = insert_uuid(df)
 
     # filter by variant type and genome build
     snv_df, dropped = create_snv_df(df, dropped)
