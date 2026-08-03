@@ -110,14 +110,18 @@ def main():
 
     # initialise list of dropped rows
     df['drop_reason'] = ""
+    df["Classification_reformatted"] = ""
     dropped = []
+
+    # add UUID column
+    df = insert_uuid(df)
 
     # drop rows with missing, duplicate, or inappropriate values
     df, dropped = drop_missing_data_rows(df, dropped, config.REQUIRED_FIELDS)
-    df, dropped = drop_duplicates(df, dropped, config.DUPLICATE_FIELDS)
     df, dropped = drop_generic_mondo(df, dropped, config.GENERIC_MONDO)
     df, dropped = drop_where_column_equals(df, dropped, "Summary_status", "REPORTED_INCONCLUSIVE")
     df, dropped = drop_where_column_equals(df, dropped, "Classification", "not_assessed")
+    df, dropped = drop_duplicates(df, dropped, config.DUPLICATE_FIELDS)
 
     # clean data values
     df = reformat_column(df, config.MONDO_MAP, "Mondo_code")
@@ -126,17 +130,18 @@ def main():
     df = replace_single_column_value(df, "LastModifiedDate", " 00:00:00+00:00", "")
     df = replace_single_column_value(df, "Proband_HPO_terms", ",", ";")
 
-    # add UUID column
-    df = insert_uuid(df)
-
     # filter by variant type and genome build
     snv_df, dropped = create_snv_df(df, dropped)
     cnv_df, dropped = create_cnv_df(df, dropped)
 
-    logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
-    snv_b37, snv_b38 = split_builds(snv_df)
-    logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
-    cnv_b37, cnv_b38 = split_builds(cnv_df)
+    snv_b37 = snv_b38 = cnv_b37 = cnv_b38 = ""
+
+    if snv_df is not None:
+        logging.info("Splitting SNV records into GRCh37/GRCh38 dataframes")
+        snv_b37, snv_b38 = split_builds(snv_df)
+    if cnv_df is not None:
+        logging.info("Splitting CNV records into GRCh37/GRCh38 dataframes")
+        cnv_b37, cnv_b38 = split_builds(cnv_df)
 
     # export df of dropped variants
     drop_df = pd.DataFrame(dropped, columns=df.columns)
