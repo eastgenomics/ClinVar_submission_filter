@@ -108,6 +108,9 @@ def main():
     df = pd.read_excel(args.input_file)
     logging.info(f"File read into dataframe containing {len(df)} variants\n")
 
+    # fix chr notation
+    df['Chromosome'] = df['Chromosome'].apply(lambda x: str(x).replace('chr', ''))
+
     # initialise list of dropped rows
     df['drop_reason'] = ""
     df["Classification_reformatted"] = ""
