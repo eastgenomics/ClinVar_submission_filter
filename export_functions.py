@@ -88,6 +88,11 @@ def create_snv_df(df, dropped, variant_length=50):
         dropped += dropped_df.values.tolist()
         logging.info(f"Dropped {drop_count} SNVs longer than {variant_length}nt")
 
+    # check remaining dataframe isn't empty
+    if correct_length.empty:
+        logging.info("No SNVs remaining after dropping based on length\n")
+        return None, dropped
+
     logging.info(f"SNV dataframe created with {len(correct_length)} records\n")
 
     return correct_length, dropped
@@ -146,6 +151,11 @@ def create_cnv_df(df, dropped, variant_length=50):
         dropped_df = dropped_df.assign(drop_reason=f"CNV shorter than {variant_length}nt")
         dropped += dropped_df.values.tolist()
         logging.info(f"Dropped {too_short} CNVs shorter than {variant_length}nt")
+
+    # check remaining dataframe isn't empty
+    if correct_length.empty:
+        logging.info("No CNVs remaining after dropping based on length\n")
+        return None, dropped
 
     # infer CNV copy numbers
     correct_length[["copy number", "expected copy number"]] = correct_length.apply(
