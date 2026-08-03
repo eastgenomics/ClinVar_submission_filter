@@ -21,7 +21,7 @@ The script performs the following functions:
 - Split into GRCh37 and GRCh38
 - Export to .xlsx
 
-The script produces 5 output .xlsx files plus a log:
+The script produces up to 5 output .xlsx files plus a log:
 - GRCh37 SNVs: ```<output_dir>/<filename>_GRCh37_SNV.xlsx```
 - GRCh38 SNVs: ```<output_dir>/<filename>_GRCh38_SNV.xlsx```
 - GRCh37 CNVs: ```<output_dir>/<filename>_GRCh37_CNV.xlsx```
