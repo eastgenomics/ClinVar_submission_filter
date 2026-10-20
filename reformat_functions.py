@@ -6,6 +6,23 @@ import uuid
 import time
 
 
+def fix_chromosome_notation(df):
+    """ Remove chr prefixes, and ensure mitochondrial chromosomes are
+    represented consistently """
+
+    # remove any chr prefixes
+    df['Chromosome'] = df['Chromosome'].apply(
+        lambda x: str(x).upper().replace('CHR', '').strip()
+    )
+
+    # ensure mito chromosomes are MT and not just M
+    df['Chromosome'] = df['Chromosome'].apply(
+            lambda x: 'MT' if (x == 'M') else x
+        )
+
+    return df
+
+
 def reformat_column(
         df, mapping, column, new_column=None, replace=True, stringent=False
     ) -> pd.DataFrame:

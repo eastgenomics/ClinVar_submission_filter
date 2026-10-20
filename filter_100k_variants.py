@@ -14,6 +14,7 @@ from row_drop_functions import (
 )
 
 from reformat_functions import (
+    fix_chromosome_notation,
     reformat_column,
     replace_single_column_value,
     insert_uuid
@@ -121,7 +122,7 @@ def main():
     df, dropped = drop_generic_mondo(df, dropped, config.GENERIC_MONDO)
     df, dropped = drop_where_column_equals(df, dropped, "Summary_status", "REPORTED_INCONCLUSIVE")
     df, dropped = drop_where_column_equals(df, dropped, "Classification", "not_assessed")
-    df['Chromosome'] = df['Chromosome'].apply(lambda x: str(x).upper().replace('CHR', '').strip())
+    df = fix_chromosome_notation(df)
     df, dropped = drop_duplicates(df, dropped, config.DUPLICATE_FIELDS)
 
     # clean data values
