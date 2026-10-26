@@ -100,7 +100,7 @@ def drop_generic_mondo(df, dropped, generic_code):
     return retained_df, dropped
 
 
-def drop_where_column_equals(df, dropped, column, value):
+def drop_where_column_equals(df, dropped, column, value, invert=False):
     """ Remove rows where specified column has specified value.
 
     Args:
@@ -108,22 +108,29 @@ def drop_where_column_equals(df, dropped, column, value):
         dropped (list): List of dropped rows
         column (str): Column to check for string
         value (str): Value in column to filter out variants.
+        invert (bool): Reverses behaviour to keep only rows where column=value
 
     Returns:
         pd.DataFrame: Dataframe after removing rows
         list: Updated list of dropped rows
     """
 
-    logging.info(f"Dropping records where column {column} has value {value}")
-
     before_drop = len(df)
 
-    # remove rows where specified column has specified value
-    retained_df = df[df[column] != value]
+    if invert:
+        # keep only rows where column=value
+        logging.info(f"Dropping records where column {column} is not {value}")
+        reason = f"Column {column} is not {value}"
+        retained_df = df[df[column] == value]
+    else:
+        # drop rows where column=value
+        logging.info(f"Dropping records where column {column} is {value}")
+        reason = f"Column {column} is {value}"
+        retained_df = df[df[column] != value]
 
     # append dropped rows to the list
     dropped_df = df[~df.index.isin(retained_df.index)]
-    dropped_df = dropped_df.assign(drop_reason=f"Column {column} has value {value}")
+    dropped_df = dropped_df.assign(drop_reason=reason)
     dropped += dropped_df.values.tolist()
 
     logging.info(f"Number of records dropped: {before_drop - len(retained_df)}\n")
