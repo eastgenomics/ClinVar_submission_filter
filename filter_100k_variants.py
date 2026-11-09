@@ -127,6 +127,7 @@ def main():
 
     # clean data values
     df = reformat_column(df, config.MONDO_MAP, "Mondo_code")
+    df = reformat_column(df, config.HPO_MAP, "Proband_HPO_terms")
     df = reformat_column(df, config.CLINSIG_MAP, "Classification", new_column="Classification_reformatted", replace=False, stringent=True)
     df = reformat_column(df, config.CNV_MAP, "Variant_type")
     df = replace_single_column_value(df, "LastModifiedDate", " 00:00:00+00:00", "")

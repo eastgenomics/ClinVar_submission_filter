@@ -26,6 +26,11 @@ MONDO_MAP = {
     'MONDO:0009453': 'MONDO:0021094 '
 }
 
+HPO_MAP = {
+    'HP:0005549': 'HP:0001875',
+    'HP:0000535': 'HP:0045075'
+}
+
 CLINSIG_MAP = {
     'benign_variant': 'Benign',
     'likely_benign_variant': 'Likely benign',
