@@ -109,6 +109,11 @@ def main():
     df = pd.read_excel(args.input_file)
     logging.info(f"File read into dataframe containing {len(df)} variants\n")
 
+    # add empty CNV columns if not present (i.e. because there are no CNVs)
+    for field in 'Stop', 'Variant_type':
+        if field not in df.columns:
+            df[field] = None
+
     # initialise list of dropped rows
     df['drop_reason'] = ""
     df["Classification_reformatted"] = ""
