@@ -53,7 +53,7 @@ def read_vars_to_submit(dir, cols):
 
     # identify, read and concatenate the files
     to_submit_fps = glob.glob(f"{dir}/*GRCh*.xlsx")
-    assert len(to_submit_fps) == 3; f"Expected 3 files, found {len(to_submit_fps)}"
+    assert len(to_submit_fps) == 3, f"Expected 3 files, found {len(to_submit_fps)}"
 
     to_submit = pd.concat(
         [pd.read_excel(x, usecols=cols) for x in to_submit_fps],
@@ -86,7 +86,7 @@ def read_vars_to_drop(dir, cols):
 
     # read in variants that should have been dropped
     to_drop_fps = glob.glob(f"{dir}/*dropped.xlsx")
-    assert len(to_drop_fps) == 1; f"Expected 1 file, found {len(to_drop_fps)}"
+    assert len(to_drop_fps) == 1, f"Expected 1 file, found {len(to_drop_fps)}"
     to_drop = pd.read_excel(to_drop_fps[0], usecols=cols)
 
     # can ignore variants missing these fields because ClinVar wouldn't accept them
@@ -145,7 +145,7 @@ def read_submitted_files(dir):
         single_df = pd.read_csv(new_fp, sep='\t', header=25)
 
         # add column for which submission a record was in
-        single_df['submission'] = re.findall(r'(SUB.*?)(?=_.*)', fp)[0]
+        single_df['submission'] = re.findall(r'SUB\d{8}(?=_)', fp)[0]
         submitted_list.append(single_df)
 
     submitted = pd.concat(submitted_list, ignore_index=True)
