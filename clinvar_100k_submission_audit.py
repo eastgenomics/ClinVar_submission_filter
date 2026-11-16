@@ -26,6 +26,7 @@ import glob
 import pandas as pd
 import subprocess
 import re
+import os
 
 
 def parse_args() -> argparse.Namespace:
@@ -145,7 +146,7 @@ def read_submitted_files(dir):
         single_df = pd.read_csv(new_fp, sep='\t', header=25)
 
         # add column for which submission a record was in
-        single_df['submission'] = re.findall(r'SUB\d{8}(?=_)', fp)[0]
+        single_df['submission'] = re.findall(r'SUB\d{8}(?=_)', os.path.basename(fp))[0]
         submitted_list.append(single_df)
 
     submitted = pd.concat(submitted_list, ignore_index=True)
