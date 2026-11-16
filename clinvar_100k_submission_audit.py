@@ -14,17 +14,37 @@ Outputs:
 - Counts and CSV files of variants in each category
 
 Requirements:
-- Path to outputs of ClinVar_submission_filter (filtered_dir)
-- Path to downloaded ClinVar submission reports (submitted_dir)
+- Path to outputs of ClinVar_submission_filter (filtered)
+- Path to downloaded ClinVar submission reports (submitted)
 
 The ClinVar submission reports are named in the following format:
 - SUBXXXXXXXX_(100)_submitter_report_B.txt
 """
 
+import argparse
 import glob
 import pandas as pd
 import subprocess
 import re
+
+
+def parse_args() -> argparse.Namespace:
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-f", "--filtered", type=str, required=True,
+        help="Path to folder containing outputs of filter_100k_variants.py"
+    )
+
+    parser.add_argument(
+        "-s", "--submitted", type=str, required=True,
+        help="Path to folder containing ClinVar submission reports"
+    )
+
+    args = parser.parse_args()
+
+    return args
 
 
 def read_vars_to_submit(dir, cols):
@@ -318,20 +338,20 @@ def get_mystery_variants(to_submit, to_drop, submitted):
 
 def main():
 
+    args = parse_args()
+
     # read ClinVar_submission_filter outputs
-    filtered_dir = 'all_GLH_submissions/EGLH'
     filtered_cols = [
         'Build', 'Chromosome', 'Start', 'Stop', 'Reference', 'Alternate',
         'Summary_status', 'Mondo_code', 'LastModifiedDate', 'Classification',
         'Classification_reformatted', 'drop_reason'
     ]
 
-    to_submit = read_vars_to_submit(filtered_dir, filtered_cols)
-    to_drop = read_vars_to_drop(filtered_dir, filtered_cols)
+    to_submit = read_vars_to_submit(args.filtered, filtered_cols)
+    to_drop = read_vars_to_drop(args.filtered, filtered_cols)
 
     # read ClinVar submission reports (accepted variants)
-    submitted_dir = 'previous_submissions'
-    submitted = read_submitted_files(submitted_dir)
+    submitted = read_submitted_files(args.submitted)
 
     # identify variants which should have been submitted but weren't
     correctly_submitted, incorrectly_not_submitted = get_incorrectly_not_submitted(to_submit, submitted)
